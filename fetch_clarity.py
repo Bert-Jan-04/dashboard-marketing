@@ -74,7 +74,11 @@ def main():
     }
 
     print(f"Clarity data ophalen: {params['startDate']} t/m {params['endDate']}")
-    raw     = fetch("project-live-insights", params)
+    try:
+        raw = fetch("project-live-insights", params)
+    except Exception as e:
+        print(f"Clarity API fout (bestaande data behouden): {e}")
+        return
     metrics = parse_metrics(raw)
 
     data = {
