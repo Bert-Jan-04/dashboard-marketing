@@ -1135,6 +1135,7 @@ async function laadData() {
     } catch (e) { console.warn('Leads history niet beschikbaar:', e); }
 
     vulContentPagesStatus();
+    if (huidigePagina === 'clarity') vulClarityPagina();
 }
 
 // ── KPIs DASHBOARD ──────────────────────────────────────────
