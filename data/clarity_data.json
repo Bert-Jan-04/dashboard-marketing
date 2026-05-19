@@ -1,0 +1,120 @@
+{
+  "periode": {
+    "start": "2026-05-12",
+    "eind": "2026-05-19"
+  },
+  "metrics": {
+    "dead_click_pct": 12.48,
+    "dead_click_paginas": 304,
+    "rage_click_pct": 0.09,
+    "quickback_pct": 4.28,
+    "quickback_paginas": 117,
+    "script_error_pct": 0.89,
+    "scroll_diepte": 44.4,
+    "sessies": 2243,
+    "bot_sessies": 137,
+    "gebruikers": 2384,
+    "paginas_per_sessie": 1.22,
+    "actieve_tijd_sec": 39,
+    "totale_tijd_sec": 64,
+    "apparaten": [
+      {
+        "naam": "Mobile",
+        "sessies": 1817
+      },
+      {
+        "naam": "Tablet",
+        "sessies": 228
+      },
+      {
+        "naam": "PC",
+        "sessies": 199
+      }
+    ],
+    "verwijzers": [
+      {
+        "url": "https://paid.outbrain.com/",
+        "sessies": 735
+      },
+      {
+        "url": "Direct",
+        "sessies": 390
+      },
+      {
+        "url": "https://www.google.com/",
+        "sessies": 128
+      },
+      {
+        "url": "https://www.tipsenweetjes.nl/",
+        "sessies": 98
+      },
+      {
+        "url": "https://t-paid.outbrain.com/",
+        "sessies": 56
+      },
+      {
+        "url": "https://www.bing.com/",
+        "sessies": 21
+      },
+      {
+        "url": "https://taboola.com/",
+        "sessies": 11
+      },
+      {
+        "url": "https://wistjijdit.nl/",
+        "sessies": 11
+      },
+      {
+        "url": "https://trc.taboola.com/",
+        "sessies": 10
+      },
+      {
+        "url": "https://dakdekkersgids.nl/",
+        "sessies": 8
+      }
+    ],
+    "populaire_paginas": [
+      {
+        "url": "/bespaar-tab/",
+        "bezoeken": 1029
+      },
+      {
+        "url": "/besparen/",
+        "bezoeken": 923
+      },
+      {
+        "url": "/offertevergelijker/",
+        "bezoeken": 312
+      },
+      {
+        "url": "/offerte-aanvragen/",
+        "bezoeken": 30
+      },
+      {
+        "url": "/",
+        "bezoeken": 16
+      },
+      {
+        "url": "/bedankt-dakdekkers/",
+        "bezoeken": 11
+      },
+      {
+        "url": "/keuzehulp/",
+        "bezoeken": 4
+      },
+      {
+        "url": "/eindhoven/",
+        "bezoeken": 4
+      },
+      {
+        "url": "/btw-dakdekker/",
+        "bezoeken": 4
+      },
+      {
+        "url": "/maastricht/p-l-l-stassen-en-zonen/",
+        "bezoeken": 4
+      }
+    ]
+  },
+  "gegenereerd": "2026-05-19"
+}

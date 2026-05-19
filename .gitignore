@@ -2,8 +2,9 @@
 .env
 credentials/
 
-# Data (gegenereerd, niet in repo)
-data/
+# Data (gegenereerd, niet in repo — behalve clarity seed)
+data/*
+!data/clarity_data.json
 
 # Python cache
 __pycache__/
