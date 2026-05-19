@@ -955,47 +955,61 @@
         <button class="chat-send" id="chat-send" onclick="verstuurChat()">↑</button>
     <!-- CLARITY -->
     <div class="page" id="page-clarity">
-        <div class="four-col" id="clarity-kpis" style="margin-bottom:20px">
-            <div class="card" style="margin-bottom:0;text-align:center">
-                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Sessies</div>
-                <div id="cl-sessies" style="font-size:36px;font-weight:700;color:#fff">—</div>
-                <div style="font-size:11px;color:#828282;margin-top:4px">afgelopen 7 dagen</div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#0078d4"></span>Microsoft Clarity</div>
+                <div class="kpi-label">Sessies</div>
+                <div class="kpi-value" id="cl-sessies">—</div>
+                <div class="kpi-change" style="color:#828282">afgelopen 7 dagen</div>
             </div>
-            <div class="card" style="margin-bottom:0;text-align:center">
-                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Scroll diepte</div>
-                <div id="cl-scroll" style="font-size:36px;font-weight:700;color:#a78bfa">—</div>
-                <div style="font-size:11px;color:#828282;margin-top:4px">gemiddeld</div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Microsoft Clarity</div>
+                <div class="kpi-label">Scroll diepte</div>
+                <div class="kpi-value" id="cl-scroll">—</div>
+                <div class="kpi-change" style="color:#828282">gemiddeld</div>
             </div>
-            <div class="card" style="margin-bottom:0;text-align:center">
-                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Dead clicks</div>
-                <div id="cl-dead" style="font-size:36px;font-weight:700;color:#fbbf24">—</div>
-                <div style="font-size:11px;color:#828282;margin-top:4px">% van sessies</div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#fbbf24"></span>Microsoft Clarity</div>
+                <div class="kpi-label">Dead clicks</div>
+                <div class="kpi-value" id="cl-dead">—</div>
+                <div class="kpi-change" style="color:#828282">% van sessies</div>
             </div>
-            <div class="card" style="margin-bottom:0;text-align:center">
-                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Snel weg</div>
-                <div id="cl-quickback" style="font-size:36px;font-weight:700;color:#f87171">—</div>
-                <div style="font-size:11px;color:#828282;margin-top:4px">quickback %</div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#f87171"></span>Microsoft Clarity</div>
+                <div class="kpi-label">Snel weg (quickback)</div>
+                <div class="kpi-value" id="cl-quickback">—</div>
+                <div class="kpi-change" style="color:#828282">% van sessies</div>
             </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">UX-signalen</div>
+            <div class="card-sub">Automatische waarschuwingen op basis van frustratie-indicatoren</div>
+            <div id="cl-signalen"><span style="color:#828282;font-size:13px">Laden...</span></div>
         </div>
 
         <div class="two-col">
             <div class="card" style="margin-bottom:0">
                 <div class="card-title">Apparaten</div>
-                <div class="card-sub">Sessies per apparaattype</div>
+                <div class="card-sub">Sessieverdeling per apparaattype</div>
                 <div id="cl-apparaten"></div>
             </div>
             <div class="card" style="margin-bottom:0">
                 <div class="card-title">Populaire pagina's</div>
                 <div class="card-sub">Meest bezochte pagina's via Clarity</div>
-                <div id="cl-paginas"></div>
+                <table width="100%" style="margin-top:4px">
+                    <thead>
+                        <tr>
+                            <th>Pagina</th>
+                            <th style="text-align:right">Bezoeken</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cl-paginas"></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">Signalen</div>
-            <div class="card-sub">Frustratie-indicatoren en UX-problemen</div>
-            <div id="cl-signalen"></div>
-        </div>
     </div>
 
     </div>
@@ -2264,19 +2278,11 @@ function vulClarityPagina() {
         </div>`).join('');
 
     // Populaire pagina's
-    document.getElementById('cl-paginas').innerHTML = `
-        <table width="100%" cellpadding="0" cellspacing="0">
-            <thead><tr>
-                <th style="padding:8px 0;font-size:10px;color:#828282;text-align:left;text-transform:uppercase">Pagina</th>
-                <th style="padding:8px 0;font-size:10px;color:#828282;text-align:right;text-transform:uppercase">Bezoeken</th>
-            </tr></thead>
-            <tbody>${(m.populaire_paginas || []).map(p => `
-                <tr>
-                    <td style="padding:7px 0;font-size:12px;color:#02CE80;font-family:monospace">${p.url}</td>
-                    <td style="padding:7px 0;font-size:13px;text-align:right;font-weight:700">${p.bezoeken}</td>
-                </tr>`).join('')}
-            </tbody>
-        </table>`;
+    document.getElementById('cl-paginas').innerHTML = (m.populaire_paginas || []).map(p => `
+        <tr>
+            <td style="font-family:monospace;color:#02CE80;font-size:12px">${p.url}</td>
+            <td style="text-align:right;font-weight:700">${p.bezoeken}</td>
+        </tr>`).join('');
 
     // Signalen
     const signalen = [];
