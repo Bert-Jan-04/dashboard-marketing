@@ -804,10 +804,10 @@ def _dagelijkse_mail_loop():
             if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
                 print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mail — data vernieuwen...")
                 _sla_snapshot_op()
-                for script in ["fetch_gsc.py", "fetch_ga4.py"]:
+                for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py"]:
                     subprocess.run(
                         [sys.executable, os.path.join(BASE_DIR, script)],
-                        capture_output=True, timeout=90
+                        capture_output=True, timeout=120
                     )
                 anomalieën = _detect_anomalies()
                 if anomalieën:
@@ -820,9 +820,22 @@ def _dagelijkse_mail_loop():
         time.sleep(300)  # check elke 5 minuten
 
 
-# Start scheduler alleen in de hoofd-worker (niet in Flask reloader-process)
+def _startup_fetch():
+    print("[startup] Data ophalen...")
+    for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py"]:
+        result = subprocess.run(
+            [sys.executable, os.path.join(BASE_DIR, script)],
+            capture_output=True, timeout=120
+        )
+        status = "ok" if result.returncode == 0 else "fout"
+        print(f"[startup] {script}: {status}")
+    print("[startup] Klaar.")
+
+
+# Start scheduler en eenmalige startup-fetch
 if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     threading.Thread(target=_dagelijkse_mail_loop, daemon=True).start()
+    threading.Thread(target=_startup_fetch, daemon=True).start()
 
 
 # Mail rapport
