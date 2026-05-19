@@ -221,24 +221,26 @@ Top dreigingen (keyword → onze positie | impressies | Mangools volume | diffic
         competitor_blok = "CONCURRENTENANALYSE: Nog geen data beschikbaar. Voer eerst een scan uit via /api/fetch-competitors."
 
     # ── CLARITY ──
-    if clarity and clarity.get("metrics"):
+    if clarity and isinstance(clarity, dict) and clarity.get("metrics"):
         m = clarity["metrics"]
-        dead_paginas = "\n".join(f"  - {p['pagina']}: {p['pct']}%" for p in m.get("dead_click_paginas", [])[:5])
-        qb_paginas = "\n".join(f"  - {p['pagina']}: {p['pct']}%" for p in m.get("quickback_paginas", [])[:5])
-        pop_paginas = "\n".join(f"  - {p['pad']}: {p['bezoeken']} bezoeken ({p['aandeel']}%)" for p in m.get("populaire_paginas", [])[:10])
+        pop_paginas = "\n".join(
+            f"  - {p.get('url', p.get('pad','?'))}: {p.get('bezoeken','?')} bezoeken"
+            for p in (m.get("populaire_paginas", []) if isinstance(m.get("populaire_paginas"), list) else [])[:10]
+        )
+        apparaten = "\n".join(
+            f"  - {a.get('naam','?')}: {a.get('sessies','?')} sessies"
+            for a in (m.get("apparaten", []) if isinstance(m.get("apparaten"), list) else [])
+        )
         clarity_blok = f"""MICROSOFT CLARITY (gedragsdata, periode: {clarity.get('periode','?')}):
 - Sessies: {m.get('sessies',0)} | Unieke gebruikers: {m.get('gebruikers',0)}
 - Pagina's per sessie: {m.get('paginas_per_sessie',0)} | Actieve tijd: {round(m.get('actieve_tijd_sec',0)/60,1)} min | Totale tijd: {round(m.get('totale_tijd_sec',0)/60,1)} min
 - Scroll diepte: {m.get('scroll_diepte',0)}%
-- Dead clicks: {m.get('dead_click_pct',0)}% | Rage clicks: {m.get('rage_click_pct',0)}% | Quick back: {m.get('quickback_pct',0)}% | Script errors: {m.get('script_error_pct',0)}%
-- Apparaten: {json.dumps(m.get('apparaten',[]), ensure_ascii=False)}
-- Verwijzers: {json.dumps(m.get('verwijzers',[])[:8], ensure_ascii=False)}
+- Dead clicks: {m.get('dead_click_pct',0)}% ({m.get('dead_click_paginas',0)} pagina's) | Rage clicks: {m.get('rage_click_pct',0)}% | Quick back: {m.get('quickback_pct',0)}% ({m.get('quickback_paginas',0)} pagina's) | Script errors: {m.get('script_error_pct',0)}%
+- Apparaten:
+{apparaten}
+- Verwijzers: {json.dumps([v.get('url','?') for v in (m.get('verwijzers',[]) if isinstance(m.get('verwijzers'), list) else [])][:8], ensure_ascii=False)}
 - Populaire pagina's:
-{pop_paginas}
-- Dead click pagina's:
-{dead_paginas}
-- Quick back pagina's (bezoekers die snel terug naar Google gingen):
-{qb_paginas}"""
+{pop_paginas}"""
     else:
         clarity_blok = "MICROSOFT CLARITY: Nog geen data beschikbaar."
 
