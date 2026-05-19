@@ -1175,7 +1175,7 @@ function vulGSCPagina() {
 function filterKeywords() {
     const zoek = document.getElementById('gsc-zoek').value.toLowerCase().trim();
     // Combineer weekdata + 30-dagendata; weekdata heeft voorrang bij duplicaten
-    const weekKws = gscData.top_keywords || [];
+    const weekKws = gscData.content_keywords || gscData.top_keywords || [];
     const monthKws = gscData.kw_month || [];
     const weekQueries = new Set(weekKws.map(k => k.query.toLowerCase()));
     const alleKws = [...weekKws, ...monthKws.filter(k => !weekQueries.has(k.query.toLowerCase()))];
