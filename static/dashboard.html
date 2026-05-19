@@ -176,6 +176,7 @@
     <div class="nav-item" onclick="navigeer('clusters')">◼ Clusters</div>
     <div class="nav-item" onclick="navigeer('analyse')">◼ Analyse</div>
     <div class="nav-item" onclick="navigeer('clarity')">◼ Clarity</div>
+    <div class="nav-item" onclick="navigeer('concurrenten')">◼ Concurrenten</div>
 </div>
 
 <div class="main">
@@ -1018,6 +1019,66 @@
 
     </div>
 
+    <!-- CONCURRENTEN -->
+    <div class="page" id="page-concurrenten">
+
+        <div class="kpi-grid" id="concurrent-kpis">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#f59e0b"></span>Concurrentenanalyse</div>
+                <div class="kpi-label">Dreigingen gevonden</div>
+                <div class="kpi-value" id="cc-dreigingen">—</div>
+                <div class="kpi-change text-muted" id="cc-gegenereerd">nog geen scan</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#f59e0b"></span>Concurrentenanalyse</div>
+                <div class="kpi-label">Concurrent keywords</div>
+                <div class="kpi-value" id="cc-totaal-kw">—</div>
+                <div class="kpi-change text-muted">unieke slugs gevonden</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#f59e0b"></span>Concurrentenanalyse</div>
+                <div class="kpi-label">Overlap met jou</div>
+                <div class="kpi-value" id="cc-overlap">—</div>
+                <div class="kpi-change text-muted">keywords die jij ook hebt</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#f59e0b"></span>Concurrentenanalyse</div>
+                <div class="kpi-label">Meerdere concurrenten</div>
+                <div class="kpi-value" id="cc-meerdere">—</div>
+                <div class="kpi-change text-muted">keywords bij 2+ concurrenten</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Concurrenten</div>
+            <div class="card-sub">Gescande domeinen en hun dak-gerelateerde pagina's</div>
+            <table>
+                <thead><tr><th>Naam</th><th>Domein</th><th style="text-align:right">Totaal pagina's</th><th style="text-align:right">Dak-pagina's</th><th style="text-align:right">Keywords gevonden</th></tr></thead>
+                <tbody id="cc-domeinen-tabel"><tr><td colspan="5" class="loading">Nog geen scan — klik op "Sitemap scannen"</td></tr></tbody>
+            </table>
+            <div style="margin-top:14px">
+                <button class="chat-mail-btn" id="cc-scan-btn" style="font-size:12px;padding:8px 16px;border-color:#f59e0b40;color:#f59e0b" onclick="startConcurrentScan(this)">⟳ Sitemap scannen</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Dreigingen — keywords waar concurrenten voor staan, jij (nog) niet</div>
+            <div class="card-sub">Gesorteerd op dreigingsscore (meer concurrenten + hogere impressies = hoger)</div>
+            <table>
+                <thead><tr>
+                    <th>Keyword</th>
+                    <th style="text-align:right">Jouw positie</th>
+                    <th style="text-align:right">Jouw impressies</th>
+                    <th style="text-align:right">Jouw clicks</th>
+                    <th>Concurrenten</th>
+                    <th style="text-align:right">Score</th>
+                </tr></thead>
+                <tbody id="cc-dreigingen-tabel"><tr><td colspan="6" class="loading">Nog geen data</td></tr></tbody>
+            </table>
+        </div>
+
+    </div>
+
 </div>
 
 <!-- CHAT SIDEBAR -->
@@ -1051,6 +1112,7 @@
 <script>
 let gscData = null;
 let clarityData = null;
+let concurrentData = null;
 let ga4Data = null;
 let leadsData = null;
 let leadsHistoryData = null;
@@ -1073,11 +1135,11 @@ function navigeer(pagina) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
 
-    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusters', analyse: 'Analyse', clarity: 'Microsoft Clarity' };
+    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusters', analyse: 'Analyse', clarity: 'Microsoft Clarity', concurrenten: 'Concurrentenanalyse' };
     document.getElementById('page-titel').textContent = titels[pagina];
 
     const navItems = document.querySelectorAll('.nav-item');
-    const index = { home: 0, dashboard: 1, searchconsole: 2, analytics: 3, trends: 4, keywords: 5, clusters: 6, analyse: 7, clarity: 8 };
+    const index = { home: 0, dashboard: 1, searchconsole: 2, analytics: 3, trends: 4, keywords: 5, clusters: 6, analyse: 7, clarity: 8, concurrenten: 9 };
     if (index[pagina] !== undefined) navItems[index[pagina]].classList.add('active');
 
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
@@ -1087,6 +1149,7 @@ function navigeer(pagina) {
     if (pagina === 'dashboard' && gscData) vulKansen();
     if (pagina === 'analyse') vulAnalysePagina();
     if (pagina === 'clarity') vulClarityPagina();
+    if (pagina === 'concurrenten') vulConcurrentenPagina();
 
     haalSignaalOp(pagina);
 }
@@ -1136,6 +1199,12 @@ async function laadData() {
 
     vulContentPagesStatus();
     if (huidigePagina === 'clarity') vulClarityPagina();
+
+    try {
+        const ccRes = await fetch('/api/competitor-data', { cache: 'no-store' });
+        concurrentData = await ccRes.json();
+        if (huidigePagina === 'concurrenten') vulConcurrentenPagina();
+    } catch (e) { console.warn('Concurrent data niet beschikbaar:', e); }
 }
 
 // ── KPIs DASHBOARD ──────────────────────────────────────────
@@ -2396,6 +2465,65 @@ function vulClarityPagina() {
             background:#1a1a1a;border-radius:0 8px 8px 0;font-size:13px;color:#c0c0c0;line-height:1.6">
             ${s.tekst}
         </div>`).join('') || '<p style="color:#02CE80;font-size:13px">Geen urgente signalen gevonden.</p>';
+}
+
+// ── CONCURRENTEN PAGINA ──────────────────────────────────────
+function vulConcurrentenPagina() {
+    if (!concurrentData || !concurrentData.concurrenten) {
+        document.getElementById('cc-domeinen-tabel').innerHTML =
+            '<tr><td colspan="5" class="loading">Nog geen scan — klik op "Sitemap scannen"</td></tr>';
+        document.getElementById('cc-dreigingen-tabel').innerHTML =
+            '<tr><td colspan="6" class="loading">Nog geen data</td></tr>';
+        return;
+    }
+
+    const sam = concurrentData.samenvatting || {};
+    document.getElementById('cc-dreigingen').textContent = (concurrentData.dreigingen || []).length;
+    document.getElementById('cc-totaal-kw').textContent = (sam.totaal_concurrent_keywords || 0).toLocaleString('nl-NL');
+    document.getElementById('cc-overlap').textContent = (sam.overlap_met_ons || 0).toLocaleString('nl-NL');
+    document.getElementById('cc-meerdere').textContent = (sam.meerdere_concurrenten || 0).toLocaleString('nl-NL');
+    document.getElementById('cc-gegenereerd').textContent = 'scan: ' + (concurrentData.gegenereerd || '?');
+
+    document.getElementById('cc-domeinen-tabel').innerHTML = concurrentData.concurrenten.map(c => `
+        <tr>
+            <td>${c.naam}</td>
+            <td style="color:#828282">${c.domein}</td>
+            <td style="text-align:right">${(c.paginas_totaal || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${(c.dak_paginas || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${(c.keywords || []).length}</td>
+        </tr>`).join('');
+
+    const dreigingKleur = s => s >= 60 ? '#f87171' : s >= 30 ? '#fbbf24' : '#828282';
+    document.getElementById('cc-dreigingen-tabel').innerHTML = (concurrentData.dreigingen || []).map(d => `
+        <tr>
+            <td>${d.keyword}</td>
+            <td style="text-align:right;color:${d.onze_positie ? '#fff' : '#555'}">${d.onze_positie ? '#' + d.onze_positie : '—'}</td>
+            <td style="text-align:right">${(d.onze_impressies || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${(d.onze_clicks || 0).toLocaleString('nl-NL')}</td>
+            <td style="color:#828282;font-size:12px">${(d.concurrenten || []).join(', ')}</td>
+            <td style="text-align:right;color:${dreigingKleur(d.dreiging_score)};font-weight:600">${d.dreiging_score}</td>
+        </tr>`).join('');
+}
+
+async function startConcurrentScan(btn) {
+    btn.textContent = '⏳ Sitemaps ophalen...';
+    btn.disabled = true;
+    try {
+        const res = await fetch('/api/fetch-competitors', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+            const ccRes = await fetch('/api/competitor-data', { cache: 'no-store' });
+            concurrentData = await ccRes.json();
+            vulConcurrentenPagina();
+            btn.textContent = `✓ Klaar (${data.dreigingen} dreigingen)`;
+        } else {
+            btn.textContent = '✗ ' + (data.error || 'Fout');
+            btn.disabled = false;
+        }
+    } catch (e) {
+        btn.textContent = '✗ Server niet bereikbaar';
+        btn.disabled = false;
+    }
 }
 
 // Init
