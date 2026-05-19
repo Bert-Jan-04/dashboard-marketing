@@ -56,6 +56,27 @@ def is_company_or_city_page(url):
     return len([s for s in path.split("/") if s]) >= 2
 
 
+def build_city_page_set(pages):
+    """Detecteer stadspagina's: 1-segment paden die ouder zijn van een bedrijfspagina."""
+    city_pages = set()
+    for p in pages:
+        path = strip_domain(p["page"])
+        segs = [s for s in path.split("/") if s]
+        if len(segs) >= 2:
+            city_pages.add("/" + segs[0] + "/")
+    return city_pages
+
+
+def is_content_page(url, city_pages):
+    path = strip_domain(url)
+    segs = [s for s in path.split("/") if s]
+    if len(segs) >= 2:
+        return False
+    if path in city_pages:
+        return False
+    return True
+
+
 def strip_domain(url):
     path = url.replace("https://dakdekkersgids.nl", "") or "/"
     if not path.endswith("/"):
@@ -72,6 +93,11 @@ def main():
     kw_prev    = parse_rows(query(service, prev_start, prev_end, ["query"]), ["query"])
     pages_this = parse_rows(query(service, week_start, week_end, ["page"]),  ["page"])
     pages_prev = parse_rows(query(service, prev_start, prev_end, ["page"]),  ["page"])
+
+    # ── Filter stads- en bedrijfspagina's uit top_pages ──────────────────────
+    city_pages         = build_city_page_set(pages_this)
+    content_pages      = [p for p in pages_this if is_content_page(p["page"], city_pages)]
+    content_pages_prev = [p for p in pages_prev if is_content_page(p["page"], city_pages)]
 
     # ── Keywords + rankende pagina (voor filtering + cannibalisatie) ───────────
     kw_page_rows = query(service, week_start, week_end, ["query", "page"], row_limit=5000)
@@ -136,9 +162,9 @@ def main():
     featured_kansen.sort(key=lambda x: -x["potentieel_clicks"])
 
     # ── Verwaarloosde pagina's: goede positie maar dalende impressies ──────────
-    prev_map = {strip_domain(p["page"]): p for p in pages_prev}
+    prev_map = {strip_domain(p["page"]): p for p in content_pages_prev}
     verwaarloosde = []
-    for p in pages_this:
+    for p in content_pages:
         path = strip_domain(p["page"])
         prev = prev_map.get(path)
         if not prev or prev["impressions"] < 30:
@@ -184,7 +210,7 @@ def main():
         "top_keywords":           kw_this,
         "content_keywords":       content_keywords,
         "kw_month":               kw_month,
-        "top_pages":              pages_this[:20],
+        "top_pages":              content_pages[:20],
         "prev_keywords":          kw_prev[:20],
         "cannibalisatie":         cannibalisatie,
         "featured_snippet_kansen": featured_kansen[:15],
@@ -194,9 +220,11 @@ def main():
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-    gefilterd = len(kw_this) - len(content_keywords)
+    gefilterd_kw = len(kw_this) - len(content_keywords)
+    gefilterd_pg = len(pages_this) - len(content_pages)
     print(f"Klaar! {totals_this['clicks']} clicks | {len(content_keywords)} content-keywords "
-          f"({gefilterd} bedrijf/plaats gefilterd) | {len(cannibalisatie)} cannibalisaties | "
+          f"({gefilterd_kw} kw gefilterd) | {len(content_pages)} content-pagina's "
+          f"({gefilterd_pg} stads/bedrijf gefilterd) | {len(cannibalisatie)} cannibalisaties | "
           f"{len(featured_kansen)} snippet-kansen | {len(verwaarloosde)} verwaarloosde pagina's")
     print(f"Data opgeslagen in {DATA_FILE}")
 
