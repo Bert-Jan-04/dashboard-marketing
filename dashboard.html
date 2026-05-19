@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Intelligence — Dakdekkersgids</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #fff; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: 0; top: 0; width: 230px; height: 100vh; background: #181818; border-right: 1px solid #ffffff1a; padding: 28px 0; display: flex; flex-direction: column; }
+        .logo { padding: 0 24px 28px; border-bottom: 1px solid #ffffff1a; margin-bottom: 20px; }
+        .logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+        .logo-text span { color: #02CE80; }
+        .logo-sub { font-size: 11px; color: #828282; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+        .nav-section { font-size: 10px; color: #828282; letter-spacing: 1.1px; text-transform: uppercase; padding: 0 24px; margin: 16px 0 8px; }
+        .nav-item { padding: 11px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13.5px; color: #828282; transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { color: #fff; background: #ffffff08; }
+        .nav-item.active { color: #fff; background: #02CE8015; border-left-color: #02CE80; }
+
+        /* MAIN */
+        .main { margin-left: 230px; margin-right: 320px; padding: 36px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .header h1 { font-size: 24px; font-weight: 700; }
+        .header p { font-size: 13px; color: #828282; margin-top: 5px; }
+        .week-badge { background: #02CE8015; border: 1px solid #02CE8055; color: #02CE80; padding: 9px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+
+        /* STATUS */
+        .status-bar { display: flex; gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #ffffff1a; }
+        .status-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #828282; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #02CE80; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* KPI */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+        .kpi-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+        .kpi-card { background: #1e1e1e; border: 1px solid #ffffff1a; border-radius: 20px; padding: 22px; transition: border-color 0.3s, transform 0.3s; }
+        .kpi-card:hover { border-color: #02CE8055; transform: translateY(-2px); }
+        .kpi-source { font-size: 11px; color: #828282; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .source-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .kpi-label { font-size: 13px; color: #828282; margin-bottom: 8px; }
+        .kpi-value { font-size: 30px; font-weight: 700; color: #fff; margin-bottom: 10px; letter-spacing: -0.5px; }
+        .kpi-change { font-size: 12.5px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+        .kpi-change.up { color: #02CE80; }
+        .kpi-change.down { color: #f87171; }
+
+        /* CARDS & TABLES */
+        .card { background: #1e1e1e; border: 1px solid #ffffff1a; border-radius: 20px; padding: 26px; margin-bottom: 24px; }
+        .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .card-sub { font-size: 12px; color: #828282; margin-bottom: 20px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 11px; color: #828282; text-transform: uppercase; letter-spacing: 0.7px; padding: 8px 0; text-align: left; border-bottom: 1px solid #ffffff1a; cursor: pointer; user-select: none; }
+        th:hover { color: #fff; }
+        th.sorted { color: #02CE80; }
+        td { padding: 11px 0; font-size: 13px; color: #c0c0c0; border-bottom: 1px solid #ffffff0a; }
+        td a { color: #02CE80; text-decoration: none; }
+        tr:hover td { background: #ffffff04; }
+
+        /* FILTER */
+        .filter-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+        .search-input { flex: 1; background: #121212; border: 1px solid #ffffff1a; border-radius: 12px; padding: 10px 16px; color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .search-input:focus { border-color: #02CE8055; }
+        .search-input::placeholder { color: #828282; }
+        .search-btn { background: #02CE80; color: #000; border: none; border-radius: 12px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .search-btn:hover { background: #00b870; }
+
+        /* SUGGESTIONS */
+        .suggestions { position: relative; flex: 1; }
+        .suggestions-list { position: absolute; top: 100%; left: 0; right: 0; background: #2a2a2a; border: 1px solid #ffffff1a; border-radius: 12px; margin-top: 4px; z-index: 100; max-height: 200px; overflow-y: auto; }
+        .suggestion-item { padding: 10px 16px; font-size: 13px; color: #c0c0c0; cursor: pointer; }
+        .suggestion-item:hover { background: #02CE8015; color: #fff; }
+
+        /* PAGINA DETAIL */
+        .pagina-detail { display: none; margin-bottom: 24px; }
+        .pagina-detail.visible { display: block; }
+        .detail-header { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #02CE80; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .detail-card { background: #1e1e1e; border: 1px solid #ffffff1a; border-radius: 16px; padding: 20px; }
+        .detail-label { font-size: 12px; color: #828282; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-value { font-size: 26px; font-weight: 700; color: #fff; }
+        .detail-sub { font-size: 12px; color: #828282; margin-top: 6px; }
+
+        /* REFRESH */
+        .refresh-btn { background: transparent; border: 1px solid #ffffff1a; color: #828282; border-radius: 12px; padding: 9px 18px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .refresh-btn:hover { border-color: #02CE8055; color: #02CE80; }
+        .refresh-btn.loading { opacity: 0.5; pointer-events: none; }
+        .refresh-btn.loading .spin { animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* BADGES */
+        .badge-green { background: #02CE8022; color: #02CE80; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-yellow { background: #fbbf2422; color: #fbbf24; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-red { background: #f8717122; color: #f87171; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .text-green { color: #02CE80; }
+        .text-red { color: #f87171; }
+        .text-muted { color: #828282; }
+
+        .loading { color: #828282; font-size: 14px; padding: 20px 0; }
+
+        /* CHAT SIDEBAR */
+        .chat-sidebar { position: fixed; right: 0; top: 0; width: 320px; height: 100vh; background: #181818; border-left: 1px solid #ffffff1a; display: flex; flex-direction: column; z-index: 100; }
+        .chat-sidebar-header { padding: 10px 12px 0; }
+        .chat-sidebar-title { font-size: 10px; font-weight: 700; color: #555; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+        .agent-grid { display: flex; flex-direction: row; gap: 5px; padding: 0 10px 8px; overflow-x: auto; border-bottom: 1px solid #ffffff0d; }
+        .agent-grid::-webkit-scrollbar { display: none; }
+        .agent-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 10px; padding: 6px 5px 5px; cursor: pointer; text-align: center; transition: all 0.15s; flex: 0 0 auto; width: 40px; }
+        .agent-card:hover { border-color: #3a3a3a; background: #222; }
+        .agent-card.active { border-color: #02CE80; background: #02CE8010; box-shadow: 0 0 0 1px #02CE8030; }
+        .agent-avatar { width: 28px; height: 28px; margin: 0 auto 3px; display: block; border-radius: 50%; overflow: hidden; }
+        .agent-naam { font-size: 7.5px; font-weight: 700; color: #777; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .agent-card.active .agent-naam { color: #02CE80; }
+        .agent-tag { display: none; }
+        .chat-active-bar { display: flex; align-items: center; gap: 8px; padding: 0 12px 0; margin-bottom: 2px; border-top: 1px solid #ffffff0d; padding-top: 8px; }
+        .chat-active-label { font-size: 11px; font-weight: 600; color: #02CE80; flex: 1; }
+        .chat-instructies-toggle { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; margin: 8px 12px 0; border-radius: 8px; cursor: pointer; font-size: 11px; color: #555; transition: all 0.15s; border: 1px solid transparent; }
+        .chat-instructies-toggle:hover { color: #aaa; border-color: #2a2a2a; }
+        .chat-instructies-toggle.open { color: #02CE80; border-color: #02CE8030; background: #02CE8008; }
+        .chat-instructies-panel { display: none; margin: 0 12px 4px; }
+        .chat-instructies-panel.open { display: block; }
+        .chat-instructies-area { width: 100%; background: #121212; border: 1px solid #2e2e2e; border-radius: 8px; padding: 9px 12px; color: #ccc; font-size: 12px; outline: none; resize: none; height: 90px; font-family: inherit; line-height: 1.5; box-sizing: border-box; }
+        .chat-instructies-area:focus { border-color: #02CE8040; }
+        .chat-instructies-hint { font-size: 10.5px; color: #444; margin-top: 5px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #ffffff15; border-radius: 4px; }
+        .chat-msg-wrap.user { display: flex; justify-content: flex-end; }
+        .chat-msg-wrap.ai { display: flex; justify-content: flex-start; }
+        .chat-msg { max-width: 90%; font-size: 12.5px; line-height: 1.6; padding: 9px 12px; border-radius: 10px; }
+        .chat-msg-wrap.user .chat-msg { background: #02CE8018; border: 1px solid #02CE8030; color: #e0e0e0; border-radius: 10px 10px 2px 10px; }
+        .chat-msg-wrap.ai .chat-msg { background: #222; border: 1px solid #2e2e2e; color: #b0b0b0; border-radius: 10px 10px 10px 2px; }
+        .chat-msg.typing { color: #555; font-style: italic; background: transparent; border: none; padding-left: 0; }
+        .chat-mail-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 5px 10px; background: none; border: 1px solid #2e2e2e; border-radius: 6px; color: #555; font-size: 11px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .chat-mail-btn:hover { border-color: #02CE8060; color: #02CE80; background: #02CE8008; }
+        .chat-mail-btn.verzonden { border-color: #02CE8060; color: #02CE80; cursor: default; }
+        .chat-file-chip { margin: 0 12px 8px; background: #1e2e26; border: 1px solid #02CE8040; border-radius: 8px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #02CE80; }
+        .chat-file-chip span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chat-file-remove { cursor: pointer; color: #828282; font-size: 14px; line-height: 1; flex-shrink: 0; }
+        .chat-file-remove:hover { color: #fff; }
+        .chat-input-row { padding: 12px; border-top: 1px solid #ffffff1a; display: flex; gap: 8px; align-items: flex-end; }
+        .chat-attach { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 4px; flex-shrink: 0; line-height: 1; transition: color 0.15s; }
+        .chat-attach:hover { color: #aaa; }
+        .chat-input { flex: 1; background: #121212; border: 1px solid #2e2e2e; border-radius: 8px; padding: 9px 12px; color: #fff; font-size: 12.5px; outline: none; resize: none; min-height: 72px; max-height: 140px; font-family: inherit; line-height: 1.5; }
+        .chat-input:focus { border-color: #ffffff30; }
+        .chat-send { background: #02CE80; color: #000; border: none; border-radius: 8px; width: 34px; height: 34px; font-size: 15px; cursor: pointer; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .chat-send:hover { background: #00b870; }
+        .chat-send:disabled { opacity: 0.3; cursor: not-allowed; }
+        .chat-suggesties { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 5px; }
+        .chat-chip { background: none; border: 1px solid #2a2a2a; border-radius: 8px; padding: 6px 11px; font-size: 11.5px; color: #666; cursor: pointer; text-align: left; transition: all 0.15s; font-family: inherit; width: 100%; }
+        .chat-chip:hover { border-color: #02CE8040; color: #ccc; background: #02CE8008; }
+        .chat-signaal { margin: 10px 12px 0; padding: 10px 13px; background: #02CE8008; border: 1px solid #02CE8025; border-radius: 10px; font-size: 12px; color: #02CE8099; line-height: 1.6; display: none; }
+
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="logo">
+        <div class="logo-text">Dakdekkers<span>Gids</span></div>
+        <div class="logo-sub">Marketing Intelligence</div>
+    </div>
+    <div class="nav-section">Overzicht</div>
+    <div class="nav-item" onclick="navigeer('home')">◼ Home</div>
+    <div class="nav-item active" onclick="navigeer('dashboard')">◼ Dashboard</div>
+    <div class="nav-section">Data bronnen</div>
+    <div class="nav-item" onclick="navigeer('searchconsole')">◼ Search Console</div>
+    <div class="nav-item" onclick="navigeer('analytics')">◼ Analytics</div>
+    <div class="nav-item" onclick="navigeer('trends')">◼ Trends</div>
+    <div class="nav-item" onclick="navigeer('keywords')">◼ Keyword Onderzoek</div>
+    <div class="nav-item" onclick="navigeer('clusters')">◼ Clusters</div>
+    <div class="nav-item" onclick="navigeer('analyse')">◼ Analyse</div>
+</div>
+
+<div class="main">
+
+    <!-- GEDEELDE HEADER -->
+    <div class="header">
+        <div>
+            <h1 id="page-titel">Marketing Intelligence</h1>
+            <p id="periode">Data wordt geladen...</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="week-badge" id="weekbadge">—</div>
+            <button class="refresh-btn" id="mail-header-btn" onclick="stuurMail()" title="Stuur weekrapport naar mail">
+                <span id="mail-header-icon">✉</span> Rapport mailen
+            </button>
+            <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">
+                <span class="spin">↻</span> Vernieuwen
+            </button>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item"><div class="status-dot"></div> Search Console</div>
+        <div class="status-item"><div class="status-dot"></div> Google Analytics 4</div>
+        <div class="status-item" id="status-contentpages" style="display:none">
+            <div class="status-dot" style="background:#a78bfa"></div>
+            <span id="status-contentpages-label">— content-pagina's (GSC filter)</span>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: HOME ======================== -->
+    <div class="page" id="page-home">
+        <div style="max-width:860px">
+
+            <div style="margin-bottom:32px">
+                <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Marketing Intelligence — dakdekkersgids.nl</h2>
+                <p style="color:#828282;font-size:14px;line-height:1.7">Dit dashboard centraliseert alle SEO- en leadgen-data van dakdekkersgids.nl. Je ziet live data uit Google Search Console, GA4 en Mangools, gecombineerd met AI-agenten die de data voor je analyseren en vertalen naar concrete acties.</p>
+            </div>
+
+            <!-- MODULES -->
+            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Dashboard modules</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:36px">
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('dashboard')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Dashboard</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Wekelijks KPI-overzicht: clicks, sessies, offerteaanvragen en leads per cluster. Startpunt voor elke week.</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('searchconsole')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Search Console</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Rankende keywords met positie, CTR en impressies. Inclusief CTR-kansen (positie ≤10, CTR &lt;3%) en positie-kansen (positie 4–15).</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('analytics')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Analytics</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">GA4-data: sessies per kanaal, bounce rate, en offerteaanvragen per pagina. Laat zien welk verkeer converteert.</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('trends')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Trends</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Historische verkeers- en positiedata over meerdere weken. Toont seizoenspatronen en langetermijnbewegingen.</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('keywords')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Keyword Onderzoek</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Typ een zoekwoord — Mangools geeft volume, CPC en difficulty. Kruist direct met onze GSC-data om te zien of we al ranken.</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('clusters')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Clusters</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Leadattributie per inhoudscluster (plat dak, dakpannen, isolatie, etc.). Toont welk content direct leads genereert.</div>
+                </div>
+
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer;grid-column:span 2" onclick="navigeer('analyse')">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Analyse</div>
+                    <div style="font-size:12px;color:#828282;line-height:1.6">Diepere keyword- en paginaanalyse: positie-historiek, GSC vs GA4 vergelijking per pagina en seizoenspatronen per zoekwoord.</div>
+                </div>
+
+            </div>
+
+            <!-- AI AGENTEN -->
+            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">AI Agenten</div>
+            <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:36px">
+                <p style="font-size:12px;color:#828282;line-height:1.7;margin-bottom:18px">Rechts in het dashboard staat een chatinterface met 7 gespecialiseerde AI-agenten. Elke agent heeft directe toegang tot de live dashboard-data en een specifieke expertiserol. Je schakelt tussen agenten via de avatars bovenaan de chat.</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">SEO Agent</div>
+                        <div style="font-size:11px;color:#828282">Rankings, CTR-kansen, positiebewegingen. Denkt als een senior SEO-strateeg en geeft geprioriteerde acties op basis van GSC-data.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Conversie Agent</div>
+                        <div style="font-size:11px;color:#828282">Analyseert welke pagina's traffic hebben maar niet converteren. Combineert GA4 met leaddata.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Content Gap</div>
+                        <div style="font-size:11px;color:#828282">Zoekt zoekwoorden met impressies maar zonder goede content. Vertaalt naar nieuwe pagina-ideeën.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Anomalie Detective</div>
+                        <div style="font-size:11px;color:#828282">Signaleert onverwachte pieken of dalingen in clicks, sessies of leads en geeft een verklaring.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Rapportage Agent</div>
+                        <div style="font-size:11px;color:#828282">Scant het hele dashboard met de kennis van alle agenten en mailt een kant-en-klaar rapport naar russchenbertjan@gmail.com.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Concurrentie Agent</div>
+                        <div style="font-size:11px;color:#828282">Analyseert homedeal.nl, mijn-dakdekker.nl en kosten-dakdekker.nl op basis van sitemap- en Mangools-data.</div>
+                    </div>
+                    <div style="border-left:2px solid #02CE80;padding-left:12px;grid-column:span 2">
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Plannings Agent</div>
+                        <div style="font-size:11px;color:#828282">Analyseert seizoenspatronen in GSC en GA4 en adviseert wanneer content te publiceren voor maximale leadgen-impact.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATABRONNEN -->
+            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Databronnen</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:32px">
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
+                    <div style="font-size:11px;font-weight:700;color:#4285f4;margin-bottom:5px">Google Search Console</div>
+                    <div style="font-size:11px;color:#828282;line-height:1.6">Keywords, posities, CTR en impressies. Wekelijks vernieuwd via de GSC API.</div>
+                </div>
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
+                    <div style="font-size:11px;font-weight:700;color:#e37400;margin-bottom:5px">Google Analytics 4</div>
+                    <div style="font-size:11px;color:#828282;line-height:1.6">Sessies, kanalen, bounce rate en offerteaanvragen. Gekoppeld via GA4 Data API.</div>
+                </div>
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
+                    <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:5px">Mangools</div>
+                    <div style="font-size:11px;color:#828282;line-height:1.6">Zoekvolume, keyword difficulty en CPC. Gebruikt via KWFinder API voor keyword-onderzoek en concurrentenanalyse.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: DASHBOARD ======================== -->
+    <div class="page active" id="page-dashboard">
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#4285f4"></span>Search Console</div>
+                <div class="kpi-label">Totaal clicks</div>
+                <div class="kpi-value" id="kpi-clicks">—</div>
+                <div class="kpi-change" id="kpi-clicks-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#e37400"></span>Google Analytics 4</div>
+                <div class="kpi-label">Sessies</div>
+                <div class="kpi-value" id="kpi-sessies">—</div>
+                <div class="kpi-change" id="kpi-sessies-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Google Analytics 4</div>
+                <div class="kpi-label">Offerteaanvragen</div>
+                <div class="kpi-value" id="kpi-aanvragen">—</div>
+                <div class="kpi-change" id="kpi-aanvragen-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#02CE80"></span>Google Analytics 4</div>
+                <div class="kpi-label">Bouncepercentage</div>
+                <div class="kpi-value" id="kpi-bounce">—</div>
+                <div class="kpi-change" id="kpi-bounce-sub" style="color:#828282; font-size:12px">—</div>
+            </div>
+        </div>
+
+        <!-- KANSEN & LAAGHANGEND FRUIT -->
+        <div class="two-col" id="kansen-sectie" style="display:none">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">CTR-kansen</div>
+                <div class="card-sub">Al op pagina 1, maar lage doorklik — verbeter title of meta description</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Impr.</th>
+                            <th>Positie</th>
+                            <th>CTR</th>
+                            <th>Actie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kansen-ctr-tabel">
+                        <tr><td colspan="5" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Positie-kansen</div>
+                <div class="card-sub">Positie 4-15 — bijna op pagina 1, verdiep content of voeg interne links toe</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Impr.</th>
+                            <th>Positie</th>
+                            <th>Clicks</th>
+                            <th>Actie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kansen-pos-tabel">
+                        <tr><td colspan="5" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGINA ZOEKER -->
+        <div class="card">
+            <div class="card-title">Zoek een pagina</div>
+            <div class="card-sub">Selecteer een pagina om GSC + GA4 data te bekijken</div>
+            <div class="filter-row">
+                <div class="suggestions">
+                    <input type="text" class="search-input" id="pagina-input"
+                        placeholder="/offertevergelijker/ of /besparen/" autocomplete="off">
+                    <div class="suggestions-list" id="suggestions" style="display:none"></div>
+                </div>
+                <button class="search-btn" onclick="zoekPagina()">Bekijk data</button>
+            </div>
+        </div>
+
+        <!-- PAGINA DETAIL -->
+        <div class="pagina-detail" id="pagina-detail">
+            <div class="detail-header" id="detail-titel">—</div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <div class="detail-label">Clicks (GSC)</div>
+                    <div class="detail-value" id="detail-clicks">—</div>
+                    <div class="detail-sub" id="detail-clicks-sub">—</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">Sessies (GA4)</div>
+                    <div class="detail-value" id="detail-sessies">—</div>
+                    <div class="detail-sub" id="detail-sessies-sub">—</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">CTR</div>
+                    <div class="detail-value" id="detail-ctr">—</div>
+                    <div class="detail-sub" id="detail-ctr-sub">—</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">Offerteaanvragen</div>
+                    <div class="detail-value" id="detail-aanvragen">—</div>
+                    <div class="detail-sub">via /bedankt/</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALLE PAGINA'S -->
+        <div class="card">
+            <div class="card-title">Alle pagina's met data</div>
+            <div class="card-sub">Search Console + GA4 — gesorteerd op clicks</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pagina</th>
+                        <th onclick="sorteerTabel('clicks')">Clicks</th>
+                        <th onclick="sorteerTabel('ctr')">CTR</th>
+                        <th onclick="sorteerTabel('sessies')">Sessies</th>
+                        <th onclick="sorteerTabel('aanvragen')">Aanvragen</th>
+                    </tr>
+                </thead>
+                <tbody id="paginas-tabel">
+                    <tr><td colspan="5" class="loading">Data wordt geladen...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: SEARCH CONSOLE ======================== -->
+    <div class="page" id="page-searchconsole">
+
+        <div class="kpi-grid-3">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#4285f4"></span>Search Console</div>
+                <div class="kpi-label">Totaal clicks</div>
+                <div class="kpi-value" id="gsc-kpi-clicks">—</div>
+                <div class="kpi-change" id="gsc-kpi-clicks-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#4285f4"></span>Search Console</div>
+                <div class="kpi-label">Impressions</div>
+                <div class="kpi-value" id="gsc-kpi-impressions">—</div>
+                <div class="kpi-change" id="gsc-kpi-impressions-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#4285f4"></span>Search Console</div>
+                <div class="kpi-label">Gem. CTR</div>
+                <div class="kpi-value" id="gsc-kpi-ctr">—</div>
+                <div class="kpi-change" id="gsc-kpi-ctr-sub" style="color:#828282; font-size:12px">op basis van totalen</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Keywords</div>
+            <div class="card-sub">Alle keywords — zoek hieronder, sortering op kolomkop. <span id="gsc-kw-count" style="color:#02CE80"></span></div>
+            <div class="filter-row">
+                <input type="text" class="search-input" id="gsc-zoek"
+                    placeholder="Zoek keyword..." oninput="filterKeywords()" style="max-width:360px">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th onclick="sortGSC('clicks')">Clicks</th>
+                        <th onclick="sortGSC('impressions')">Impressions</th>
+                        <th onclick="sortGSC('ctr')">CTR</th>
+                        <th onclick="sortGSC('position')">Positie</th>
+                    </tr>
+                </thead>
+                <tbody id="gsc-keywords-tabel">
+                    <tr><td colspan="5" class="loading">Data wordt geladen...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Best presterende pagina's</div>
+            <div class="card-sub">Search Console — clicks deze week</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pagina</th>
+                        <th onclick="sortGSCPages('clicks')">Clicks</th>
+                        <th onclick="sortGSCPages('impressions')">Impressions</th>
+                        <th onclick="sortGSCPages('ctr')">CTR</th>
+                        <th onclick="sortGSCPages('position')">Positie</th>
+                    </tr>
+                </thead>
+                <tbody id="gsc-paginas-tabel">
+                    <tr><td colspan="5" class="loading">Data wordt geladen...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top:24px" id="cannibalisatie-card">
+            <div class="card-title">Keyword cannibalisatie</div>
+            <div class="card-sub">Meerdere content-pagina's ranken voor hetzelfde keyword — schadelijk voor posities</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Impr.</th>
+                        <th>Pagina's</th>
+                    </tr>
+                </thead>
+                <tbody id="cannibalisatie-tabel">
+                    <tr><td colspan="3" class="loading">Laden...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: TRENDS ======================== -->
+    <div class="page" id="page-trends">
+
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Clicks & Sessies</div>
+                <div class="card-sub">Laatste 8 weken</div>
+                <canvas id="chart-clicks-sessies" style="max-height:220px"></canvas>
+            </div>
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Offerteaanvragen</div>
+                <div class="card-sub">Laatste 8 weken</div>
+                <canvas id="chart-aanvragen" style="max-height:220px"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+            <div class="card-title">Week-tot-week overzicht</div>
+            <div class="card-sub">Alle metrics per week</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Week</th>
+                        <th>Periode</th>
+                        <th>Clicks</th>
+                        <th>Impressions</th>
+                        <th>CTR</th>
+                        <th>Sessies</th>
+                        <th>Aanvragen</th>
+                        <th>Bounce%</th>
+                    </tr>
+                </thead>
+                <tbody id="trends-tabel"></tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+            <div class="card-title">Positie-historiek per pagina</div>
+            <div class="card-sub">Gemiddelde positie van top-pagina's over de laatste weken</div>
+            <canvas id="chart-positie-historiek" style="max-height:260px"></canvas>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: KEYWORD ONDERZOEK ======================== -->
+    <div class="page" id="page-keywords">
+
+        <div class="card">
+            <div class="card-title">Keyword Onderzoek</div>
+            <div class="card-sub">Typ een zoekwoord — we halen gerelateerde keywords op met zoekvolume, CPC en concurrentie en checken of je al rankt</div>
+            <div class="filter-row">
+                <input type="text" class="search-input" id="kw-input"
+                    placeholder="bijv. dakdekker, dakrenovatie, nokvorsten..." autocomplete="off">
+                <button class="search-btn" onclick="zoekKeywords()" id="kw-btn">Zoek</button>
+            </div>
+        </div>
+
+        <div class="card" id="kw-resultaten" style="display:none">
+            <div class="card-title" id="kw-titel">Resultaten</div>
+            <div class="card-sub" id="kw-sub">—</div>
+            <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap">
+                <div style="background:#f8717122; border:1px solid #f87171; border-radius:10px; padding:12px 20px; text-align:center">
+                    <div style="font-size:24px; font-weight:700; color:#f87171" id="kw-stat-missing">—</div>
+                    <div style="font-size:12px; color:#828282; margin-top:4px">Niet rankend</div>
+                </div>
+                <div style="background:#02CE8022; border:1px solid #02CE80; border-radius:10px; padding:12px 20px; text-align:center">
+                    <div style="font-size:24px; font-weight:700; color:#02CE80" id="kw-stat-ranking">—</div>
+                    <div style="font-size:12px; color:#828282; margin-top:4px">Al rankend</div>
+                </div>
+                <div style="background:#ffffff08; border:1px solid #ffffff1a; border-radius:10px; padding:12px 20px; text-align:center">
+                    <div style="font-size:24px; font-weight:700" id="kw-stat-volume">—</div>
+                    <div style="font-size:12px; color:#828282; margin-top:4px">Totaal zoekvolume kansen</div>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Zoekvolume</th>
+                        <th>CPC</th>
+                        <th>Concurrentie</th>
+                        <th>Status</th>
+                        <th>Positie</th>
+                        <th>Clicks</th>
+                        <th>Impressies</th>
+                        <th>CTR</th>
+                    </tr>
+                </thead>
+                <tbody id="kw-tabel"></tbody>
+            </table>
+
+            <div id="kw-gsc-sectie" style="display:none; margin-top:28px">
+                <div class="card-title" style="font-size:14px; margin-bottom:4px">GSC — alle rankende variaties</div>
+                <div class="card-sub" style="margin-bottom:12px" id="kw-gsc-sub">Alle keywords in Search Console die het zoekwoord bevatten</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Positie</th>
+                            <th>Clicks</th>
+                            <th>Impressies</th>
+                            <th>CTR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kw-gsc-tabel"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: ANALYTICS ======================== -->
+    <div class="page" id="page-analytics">
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#e37400"></span>Google Analytics 4</div>
+                <div class="kpi-label">Sessies</div>
+                <div class="kpi-value" id="ga4-kpi-sessies">—</div>
+                <div class="kpi-change" id="ga4-kpi-sessies-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#e37400"></span>Google Analytics 4</div>
+                <div class="kpi-label">Actieve gebruikers</div>
+                <div class="kpi-value" id="ga4-kpi-users">—</div>
+                <div class="kpi-change" id="ga4-kpi-users-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Google Analytics 4</div>
+                <div class="kpi-label">Offerteaanvragen</div>
+                <div class="kpi-value" id="ga4-kpi-aanvragen">—</div>
+                <div class="kpi-change" id="ga4-kpi-aanvragen-change">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#e37400"></span>Google Analytics 4</div>
+                <div class="kpi-label">Bouncepercentage</div>
+                <div class="kpi-value" id="ga4-kpi-bounce">—</div>
+                <div class="kpi-change" id="ga4-kpi-bounce-sub" style="color:#828282; font-size:12px">—</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Kanalen</div>
+                <div class="card-sub">Sessies per kanaal — deze week</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kanaal</th>
+                            <th>Sessies</th>
+                            <th>Conversies</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ga4-kanalen-tabel">
+                        <tr><td colspan="3" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Offerteaanvragen per landing page</div>
+                <div class="card-sub">Via /bedankt/ — deze week</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Landing page</th>
+                            <th>Aanvragen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ga4-aanvragen-tabel">
+                        <tr><td colspan="2" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+            <div class="card-title">Top pagina's</div>
+            <div class="card-sub">Google Analytics 4 — sessies deze week</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pagina</th>
+                        <th>Sessies</th>
+                        <th>Actieve gebruikers</th>
+                        <th>Bouncepercentage</th>
+                    </tr>
+                </thead>
+                <tbody id="ga4-paginas-tabel">
+                    <tr><td colspan="4" class="loading">Laden...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ======================== PAGINA: CLUSTERS ======================== -->
+    <div class="page" id="page-clusters">
+
+        <div class="kpi-grid-3">
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Funnel API</div>
+                <div class="kpi-label">Cluster leads deze week</div>
+                <div class="kpi-value" id="cl-kpi-week">—</div>
+                <div class="kpi-change" id="cl-kpi-week-sub" style="color:#828282;font-size:12px">—</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Funnel API</div>
+                <div class="kpi-label">Cluster leads cumulatief</div>
+                <div class="kpi-value" id="cl-kpi-cum">—</div>
+                <div class="kpi-change" id="cl-kpi-cum-sub" style="color:#828282;font-size:12px">20 mrt t/m nu</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-source"><span class="source-dot" style="background:#02CE80"></span>Direct</div>
+                <div class="kpi-label">Directe leads deze week</div>
+                <div class="kpi-value" id="cl-kpi-direct">—</div>
+                <div class="kpi-change" id="cl-kpi-direct-sub">—</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Cluster attributie — deze week</div>
+                <div class="card-sub" id="cl-week-periode">—</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cluster</th>
+                            <th>Bezoekers</th>
+                            <th>Leads</th>
+                            <th>Conv%</th>
+                            <th>Vorige week</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cl-week-tabel">
+                        <tr><td colspan="5" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Cluster attributie — cumulatief</div>
+                <div class="card-sub" id="cl-cum-periode">20 maart t/m nu</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cluster</th>
+                            <th>Bezoekers</th>
+                            <th>Leads</th>
+                            <th>Conv%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cl-cum-tabel">
+                        <tr><td colspan="4" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="two-col" style="margin-top:24px">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Directe leads per pagina</div>
+                <div class="card-sub" id="cl-filter-label">Gefilterd — geen nep-leads</div>
+                <table>
+                    <thead>
+                        <tr><th>Pagina</th><th>Leads</th></tr>
+                    </thead>
+                    <tbody id="cl-pagina-tabel">
+                        <tr><td colspan="2" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Leads per kanaal</div>
+                <div class="card-sub">Directe leads — deze week</div>
+                <table>
+                    <thead>
+                        <tr><th>Kanaal</th><th>Leads</th><th>%</th></tr>
+                    </thead>
+                    <tbody id="cl-kanaal-tabel">
+                        <tr><td colspan="3" class="loading">Laden...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:12px;">
+            <button class="refresh-btn" id="mail-btn" onclick="stuurMail()">
+                <span id="mail-icon">✉</span> Stuur rapport naar mail
+            </button>
+            <button class="refresh-btn" id="leads-refresh-btn" onclick="refreshLeads()">
+                <span class="spin">↻</span> Clusterdata vernieuwen
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- ======================== PAGINA: ANALYSE ======================== -->
+    <div class="page" id="page-analyse">
+
+        <!-- Lead cluster trend -->
+        <div class="card">
+            <div class="card-title">Lead trend per cluster</div>
+            <div class="card-sub">Leads per cluster over de laatste weken — accumuleert elke keer dat je leads vernieuwt</div>
+            <div id="cl-trend-leeg" style="display:none;color:#828282;font-size:13px;padding:20px 0">
+                Nog geen historische data — vernieuw de clusterdata minstens één keer per week om de trend op te bouwen.
+            </div>
+            <canvas id="chart-cluster-trend" style="max-height:280px"></canvas>
+        </div>
+
+        <!-- Meta vs Organisch ROI -->
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Meta leads — ROI</div>
+                <div class="card-sub">dakdekker_leads_meta event — betaald verkeer</div>
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:#828282;display:block;margin-bottom:6px">Wekelijkse Meta ad spend (€)</label>
+                    <input type="number" id="meta-spend-input" class="search-input" placeholder="bijv. 500"
+                        style="max-width:200px" oninput="vulROI()">
+                </div>
+                <div id="meta-roi-stats">
+                    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:0">
+                        <div class="kpi-card" style="padding:16px">
+                            <div class="kpi-label">Leads deze week</div>
+                            <div class="kpi-value" id="meta-roi-leads" style="font-size:24px">—</div>
+                        </div>
+                        <div class="kpi-card" style="padding:16px">
+                            <div class="kpi-label">Kosten per lead</div>
+                            <div class="kpi-value" id="meta-roi-cpl" style="font-size:24px;color:#fbbf24">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Organische leads — ROI</div>
+                <div class="card-sub">Organic Search + Direct — content-investering</div>
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:#828282;display:block;margin-bottom:6px">Maandelijkse SEO/content investering (€)</label>
+                    <input type="number" id="org-spend-input" class="search-input" placeholder="bijv. 1000"
+                        style="max-width:200px" oninput="vulROI()">
+                </div>
+                <div id="org-roi-stats">
+                    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:0">
+                        <div class="kpi-card" style="padding:16px">
+                            <div class="kpi-label">Leads deze week</div>
+                            <div class="kpi-value" id="org-roi-leads" style="font-size:24px">—</div>
+                        </div>
+                        <div class="kpi-card" style="padding:16px">
+                            <div class="kpi-label">Kosten per lead</div>
+                            <div class="kpi-value" id="org-roi-cpl" style="font-size:24px;color:#02CE80">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured snippet kansen -->
+        <div class="card" style="margin-top:24px">
+            <div class="card-title">Featured snippet kansen</div>
+            <div class="card-sub">Positie 1-3 maar CTR lager dan verwacht — optimaliseer naar answer box of rich snippet</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Positie</th>
+                        <th>CTR</th>
+                        <th>Verwacht</th>
+                        <th>Potentieel extra clicks</th>
+                    </tr>
+                </thead>
+                <tbody id="featured-tabel">
+                    <tr><td colspan="5" class="loading">Laden...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Verwaarloosde pagina's -->
+        <div class="card">
+            <div class="card-title">Verwaarloosde pagina's</div>
+            <div class="card-sub">Goede positie maar dalende impressies t.o.v. vorige week — content updaten of interne links toevoegen</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pagina</th>
+                        <th>Positie</th>
+                        <th>Impr. nu</th>
+                        <th>Impr. vw</th>
+                        <th>Daling</th>
+                    </tr>
+                </thead>
+                <tbody id="verwaarloosde-tabel">
+                    <tr><td colspan="5" class="loading">Laden...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+</div>
+
+<!-- CHAT SIDEBAR -->
+<div class="chat-sidebar">
+    <div class="chat-sidebar-header">
+        <div class="chat-sidebar-title">AI Agenten</div>
+    </div>
+    <div class="agent-grid" id="agent-grid"></div>
+    <div class="chat-active-bar">
+        <span class="chat-active-label" id="chat-active-label"></span>
+        <span class="chat-instructies-toggle" id="instructies-toggle" onclick="toggleInstructies()" style="margin:0;padding:4px 8px;font-size:10.5px">⚙ <span id="instructies-pijl">›</span></span>
+    </div>
+    <div class="chat-instructies-panel" id="instructies-panel">
+        <textarea class="chat-instructies-area" id="instructies-input" placeholder="Bijv: Reageer altijd in bullet points. Focus op quick wins. Vergelijk altijd met vorige week." oninput="slaInstructiesOp()"></textarea>
+        <div class="chat-instructies-hint">Worden bij elke vraag meegestuurd als extra context.</div>
+    </div>
+    <div class="chat-signaal" id="chat-signaal"></div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div id="chat-file-chip" style="display:none" class="chat-file-chip">
+        <span id="chat-file-naam"></span>
+        <span class="chat-file-remove" onclick="verwijderBestand()">✕</span>
+    </div>
+    <div class="chat-input-row">
+        <input type="file" id="chat-file-input" accept=".pdf,.txt,.csv,.md,.docx" style="display:none" onchange="bestandGekozen(this)">
+        <button class="chat-attach" onclick="document.getElementById('chat-file-input').click()" title="Bestand uploaden">📎</button>
+        <textarea class="chat-input" id="chat-input" placeholder="Stel een vraag..." rows="3"></textarea>
+        <button class="chat-send" id="chat-send" onclick="verstuurChat()">↑</button>
+    </div>
+</div>
+
+<script>
+let gscData = null;
+let ga4Data = null;
+let leadsData = null;
+let leadsHistoryData = null;
+let allePaginas = [];
+let trendsData = null;
+let chartClicksSessies = null;
+let chartAanvragen = null;
+let chartClusterTrend = null;
+let chartPositieHistoriek = null;
+let tabelData = [];
+let gscSortKey = 'clicks';
+let gscPageSortKey = 'clicks';
+let tabelSortKey = 'clicks';
+let huidigePagina = 'dashboard';
+
+// ── NAVIGATIE ──────────────────────────────────────────────
+function navigeer(pagina) {
+    huidigePagina = pagina;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + pagina).classList.add('active');
+
+    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusters', analyse: 'Analyse' };
+    document.getElementById('page-titel').textContent = titels[pagina];
+
+    const navItems = document.querySelectorAll('.nav-item');
+    const index = { home: 0, dashboard: 1, searchconsole: 2, analytics: 3, trends: 4, keywords: 5, clusters: 6, analyse: 7 };
+    navItems[index[pagina]].classList.add('active');
+
+    if (pagina === 'searchconsole' && gscData) vulGSCPagina();
+    if (pagina === 'analytics' && ga4Data) vulAnalyticsPagina();
+    if (pagina === 'trends' && trendsData) vulTrendsPagina();
+    if (pagina === 'clusters' && leadsData) { vulClustersPagina(); vulContentPagesStatus(); }
+    if (pagina === 'dashboard' && gscData) vulKansen();
+    if (pagina === 'analyse') vulAnalysePagina();
+
+    haalSignaalOp(pagina);
+}
+
+async function haalSignaalOp(pagina) {
+    const box = document.getElementById('chat-signaal');
+    box.style.display = 'none';
+    box.textContent = '';
+    try {
+        const res = await fetch(`/api/signaal?pagina=${pagina}`);
+        const data = await res.json();
+        if (data.signaal) {
+            box.textContent = data.signaal;
+            box.style.display = 'block';
+        }
+    } catch (e) {}
+}
+
+// ── DATA LADEN ──────────────────────────────────────────────
+async function laadData() {
+    const nc = { cache: 'no-store' };
+    try {
+        const [gscRes, ga4Res, paginasRes, trendsRes] = await Promise.all([
+            fetch('/api/gsc', nc), fetch('/api/ga4', nc), fetch('/api/paginas', nc), fetch('/api/trends', nc)
+        ]);
+        gscData = await gscRes.json();
+        ga4Data = await ga4Res.json();
+        allePaginas = await paginasRes.json();
+        trendsData = await trendsRes.json();
+
+        vulKPIs();
+        vulTabel();
+        vulKansen();
+    } catch (e) { console.error('Hoofddata fout:', e); }
+
+    // Leads apart laden zodat een fout hier de rest niet blokkeert
+    try {
+        const leadsRes = await fetch('/api/leads', nc);
+        leadsData = await leadsRes.json();
+    } catch (e) { console.warn('Leads data niet beschikbaar:', e); }
+
+    try {
+        const histRes = await fetch('/api/leads-history', nc);
+        leadsHistoryData = await histRes.json();
+    } catch (e) { console.warn('Leads history niet beschikbaar:', e); }
+
+    vulContentPagesStatus();
+}
+
+// ── KPIs DASHBOARD ──────────────────────────────────────────
+function vulKPIs() {
+    const start = gscData.period?.this_week?.start || '';
+    const end = gscData.period?.this_week?.end || '';
+    document.getElementById('periode').textContent = `Data: ${start} t/m ${end}`;
+    document.getElementById('weekbadge').textContent = `${start} — ${end}`;
+
+    setKPI('kpi-clicks', gscData.totals?.clicks, gscData.totals?.clicks_growth);
+    setKPI('kpi-sessies', ga4Data.totals?.sessions, ga4Data.totals?.sessions_growth);
+    setKPI('kpi-aanvragen', ga4Data.offerteaanvragen?.totaal_deze_week, ga4Data.offerteaanvragen?.groei);
+
+    const bounce = ga4Data.totals?.bounce_rate || 0;
+    document.getElementById('kpi-bounce').textContent = bounce + '%';
+    document.getElementById('kpi-bounce-sub').textContent = 'gemiddeld over alle paginas';
+}
+
+function setKPI(id, value, growth) {
+    document.getElementById(id).textContent = (value || 0).toLocaleString('nl');
+    setChange(id + '-change', growth || 0, 't.o.v. vorige week');
+}
+
+function setChange(id, growth, label) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = `${growth >= 0 ? '▲' : '▼'} ${Math.abs(growth)}% ${label}`;
+    el.className = 'kpi-change ' + (growth >= 0 ? 'up' : 'down');
+}
+
+// ── DASHBOARD TABEL ──────────────────────────────────────────
+function vulTabel() {
+    const gscPages = {};
+    for (const p of gscData.top_pages || []) {
+        const path = p.page.replace('https://dakdekkersgids.nl', '') || '/';
+        gscPages[path] = p;
+    }
+    const ga4Pages = {};
+    for (const p of ga4Data.top_pages || []) ga4Pages[p.pagePath] = p;
+    const aanvragenMap = {};
+    for (const a of ga4Data.offerteaanvragen?.deze_week || []) aanvragenMap[a.landing_page] = a.aanvragen;
+
+    const allPaths = [...new Set([...Object.keys(gscPages), ...Object.keys(ga4Pages)])];
+    tabelData = allPaths.map(path => ({
+        path,
+        clicks: gscPages[path]?.clicks || 0,
+        ctr: gscPages[path]?.ctr || 0,
+        impressions: gscPages[path]?.impressions || 0,
+        position: gscPages[path]?.position || 0,
+        sessies: ga4Pages[path]?.sessions || 0,
+        aanvragen: aanvragenMap[path] || 0
+    }));
+
+    renderTabel();
+}
+
+function sorteerTabel(key) {
+    tabelSortKey = key;
+    renderTabel();
+}
+
+function renderTabel() {
+    const sorted = [...tabelData].sort((a, b) => b[tabelSortKey] - a[tabelSortKey]);
+    const tbody = document.getElementById('paginas-tabel');
+    tbody.innerHTML = sorted.map(r => `
+        <tr style="cursor:pointer" onclick="selecteerPagina('${r.path}')">
+            <td><span style="color:#02CE80">${r.path}</span></td>
+            <td>${r.clicks || '—'}</td>
+            <td>${r.ctr ? r.ctr + '%' : '—'}</td>
+            <td>${r.sessies || '—'}</td>
+            <td>${r.aanvragen > 0 ? '<span class="badge-green">' + r.aanvragen + '</span>' : '—'}</td>
+        </tr>
+    `).join('');
+}
+
+// ── PAGINA ZOEKER ────────────────────────────────────────────
+document.getElementById('pagina-input').addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    const list = document.getElementById('suggestions');
+    if (!val || val.length < 2) { list.style.display = 'none'; return; }
+    const matches = allePaginas.filter(p => p.toLowerCase().includes(val)).slice(0, 8);
+    if (!matches.length) { list.style.display = 'none'; return; }
+    list.innerHTML = matches.map(p => `<div class="suggestion-item" onclick="selecteerPagina('${p}')">${p}</div>`).join('');
+    list.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.suggestions')) document.getElementById('suggestions').style.display = 'none';
+});
+
+function selecteerPagina(path) {
+    document.getElementById('pagina-input').value = path;
+    document.getElementById('suggestions').style.display = 'none';
+    zoekPagina();
+}
+
+async function zoekPagina() {
+    let pad = document.getElementById('pagina-input').value.trim().replace(/^\/|\/$/g, '');
+    if (!pad) return;
+    const res = await fetch(`/api/pagina?path=${encodeURIComponent(pad)}`);
+    const data = await res.json();
+
+    document.getElementById('detail-titel').textContent = data.pagina;
+    document.getElementById('detail-clicks').textContent = data.gsc?.clicks ?? '—';
+    document.getElementById('detail-clicks-sub').textContent = data.gsc ? `${data.gsc.impressions} impressions` : 'Geen GSC data';
+    document.getElementById('detail-sessies').textContent = data.ga4?.sessions ?? '—';
+    document.getElementById('detail-sessies-sub').textContent = data.ga4 ? `${data.ga4.activeUsers} actieve gebruikers` : 'Geen GA4 data';
+    document.getElementById('detail-ctr').textContent = data.gsc?.ctr ? data.gsc.ctr + '%' : '—';
+    document.getElementById('detail-ctr-sub').textContent = data.gsc ? `Positie ${data.gsc.position}` : '—';
+    document.getElementById('detail-aanvragen').textContent = data.offerteaanvragen;
+    document.getElementById('pagina-detail').classList.add('visible');
+}
+
+document.getElementById('pagina-input').addEventListener('keydown', e => { if (e.key === 'Enter') zoekPagina(); });
+
+// ── SEARCH CONSOLE PAGINA ────────────────────────────────────
+function vulGSCPagina() {
+    // KPIs
+    document.getElementById('gsc-kpi-clicks').textContent = (gscData.totals?.clicks || 0).toLocaleString('nl');
+    setChange('gsc-kpi-clicks-change', gscData.totals?.clicks_growth || 0, 't.o.v. vorige week');
+    document.getElementById('gsc-kpi-impressions').textContent = (gscData.totals?.impressions || 0).toLocaleString('nl');
+    setChange('gsc-kpi-impressions-change', gscData.totals?.impressions_growth || 0, 't.o.v. vorige week');
+
+    const ctr = gscData.totals?.clicks && gscData.totals?.impressions
+        ? ((gscData.totals.clicks / gscData.totals.impressions) * 100).toFixed(2)
+        : '—';
+    document.getElementById('gsc-kpi-ctr').textContent = ctr + '%';
+
+    filterKeywords();
+    renderGSCPages(gscData.top_pages || []);
+    vulCannibalisatie();
+}
+
+function filterKeywords() {
+    const zoek = document.getElementById('gsc-zoek').value.toLowerCase().trim();
+    // Combineer weekdata + 30-dagendata; weekdata heeft voorrang bij duplicaten
+    const weekKws = gscData.top_keywords || [];
+    const monthKws = gscData.kw_month || [];
+    const weekQueries = new Set(weekKws.map(k => k.query.toLowerCase()));
+    const alleKws = [...weekKws, ...monthKws.filter(k => !weekQueries.has(k.query.toLowerCase()))];
+    const gefilterd = zoek ? alleKws.filter(k => k.query.toLowerCase().includes(zoek)) : weekKws;
+    renderKeywords(gefilterd);
+}
+
+function renderKeywords(data) {
+    const el = document.getElementById('gsc-kw-count');
+    if (el) el.textContent = data.length + ' keywords';
+    const sorted = [...data].sort((a, b) => b[gscSortKey] - a[gscSortKey]);
+    document.getElementById('gsc-keywords-tabel').innerHTML = sorted.map(k => `
+        <tr>
+            <td>${k.query}</td>
+            <td>${k.clicks}</td>
+            <td>${k.impressions.toLocaleString('nl')}</td>
+            <td>${k.ctr}%</td>
+            <td>${positieBadge(k.position)}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="5" class="loading">Geen resultaten</td></tr>';
+}
+
+function sortGSC(key) { gscSortKey = key; filterKeywords(); }
+
+function renderGSCPages(data) {
+    const sorted = [...data].sort((a, b) => b[gscPageSortKey] - a[gscPageSortKey]);
+    document.getElementById('gsc-paginas-tabel').innerHTML = sorted.map(p => {
+        const path = p.page.replace('https://dakdekkersgids.nl', '') || '/';
+        return `
+            <tr>
+                <td><span style="color:#02CE80">${path}</span></td>
+                <td>${p.clicks}</td>
+                <td>${p.impressions.toLocaleString('nl')}</td>
+                <td>${p.ctr}%</td>
+                <td>${positieBadge(p.position)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function sortGSCPages(key) { gscPageSortKey = key; renderGSCPages(gscData.top_pages || []); }
+
+function positieBadge(pos) {
+    if (pos <= 3) return `<span class="badge-green">#${pos}</span>`;
+    if (pos <= 10) return `<span class="badge-yellow">#${pos}</span>`;
+    return `<span class="badge-red">#${pos}</span>`;
+}
+
+// ── ANALYTICS PAGINA ─────────────────────────────────────────
+function vulAnalyticsPagina() {
+    // KPIs
+    document.getElementById('ga4-kpi-sessies').textContent = (ga4Data.totals?.sessions || 0).toLocaleString('nl');
+    setChange('ga4-kpi-sessies-change', ga4Data.totals?.sessions_growth || 0, 't.o.v. vorige week');
+    document.getElementById('ga4-kpi-users').textContent = (ga4Data.totals?.active_users || 0).toLocaleString('nl');
+    setChange('ga4-kpi-users-change', ga4Data.totals?.active_users_growth || 0, 't.o.v. vorige week');
+    document.getElementById('ga4-kpi-aanvragen').textContent = ga4Data.offerteaanvragen?.totaal_deze_week || 0;
+    setChange('ga4-kpi-aanvragen-change', ga4Data.offerteaanvragen?.groei || 0, 't.o.v. vorige week');
+    document.getElementById('ga4-kpi-bounce').textContent = (ga4Data.totals?.bounce_rate || 0) + '%';
+    document.getElementById('ga4-kpi-bounce-sub').textContent = 'gemiddeld over alle paginas';
+
+    // Kanalen
+    document.getElementById('ga4-kanalen-tabel').innerHTML = (ga4Data.channels || []).map(k => `
+        <tr>
+            <td>${k.sessionDefaultChannelGrouping}</td>
+            <td>${k.sessions.toLocaleString('nl')}</td>
+            <td>${k.conversions > 0 ? '<span class="text-green">' + k.conversions + '</span>' : '—'}</td>
+        </tr>
+    `).join('');
+
+    // Offerteaanvragen
+    const aanvragen = ga4Data.offerteaanvragen?.deze_week || [];
+    document.getElementById('ga4-aanvragen-tabel').innerHTML = aanvragen.length
+        ? aanvragen.map(a => `
+            <tr>
+                <td><span style="color:#02CE80">${a.landing_page}</span></td>
+                <td><span class="badge-green">${a.aanvragen}</span></td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="2" class="loading">Geen aanvragen gevonden</td></tr>';
+
+    // Top pagina's
+    document.getElementById('ga4-paginas-tabel').innerHTML = (ga4Data.top_pages || []).map(p => `
+        <tr>
+            <td><span style="color:#02CE80">${p.pagePath}</span></td>
+            <td>${p.sessions.toLocaleString('nl')}</td>
+            <td>${p.activeUsers.toLocaleString('nl')}</td>
+            <td>${(p.bounceRate * 100).toFixed(1)}%</td>
+        </tr>
+    `).join('');
+}
+
+// ── VERNIEUWEN ───────────────────────────────────────────────
+async function refreshData() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('loading');
+    try {
+        const res = await fetch('/api/refresh', { method: 'POST' });
+        const results = await res.json();
+        const fouten = Object.entries(results).filter(([_, v]) => !v.ok);
+        if (fouten.length) {
+            alert('Fout bij verversen:\n' + fouten.map(([k, v]) => `${k}: ${v.output}`).join('\n'));
+        } else {
+            await laadData();
+        }
+    } catch (e) { alert('Server niet bereikbaar'); }
+    finally { btn.classList.remove('loading'); }
+}
+
+// ── KEYWORD ONDERZOEK ────────────────────────────────────────
+document.getElementById('kw-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') zoekKeywords();
+});
+
+async function zoekKeywords() {
+    const seed = document.getElementById('kw-input').value.trim();
+    if (!seed) return;
+
+    const btn = document.getElementById('kw-btn');
+    btn.textContent = 'Zoeken...';
+    btn.disabled = true;
+    document.getElementById('kw-resultaten').style.display = 'none';
+
+    try {
+        const res = await fetch('/api/keywords/zoek', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keyword: seed })
+        });
+        if (res.status === 429) {
+            alert('Rate limit bereikt — wacht even en probeer opnieuw');
+            return;
+        }
+        const resp = await res.json();
+        const data = resp.resultaten || [];
+        const gscMatches = resp.gsc_matches || [];
+
+        const missing = data.filter(k => !k.rankt);
+        const ranking = data.filter(k => k.rankt);
+        const totalVolume = missing.reduce((s, k) => s + (k.zoekvolume || 0), 0);
+
+        document.getElementById('kw-titel').textContent = `Resultaten voor "${seed}"`;
+        document.getElementById('kw-stat-missing').textContent = missing.length;
+        document.getElementById('kw-stat-ranking').textContent = ranking.length;
+        document.getElementById('kw-stat-volume').textContent = totalVolume.toLocaleString('nl');
+        document.getElementById('kw-sub').textContent = `${data.length} variaties gecontroleerd — kansen (niet rankend) staan bovenaan`;
+
+        document.getElementById('kw-tabel').innerHTML = data.map(k => {
+            const statusBadge = k.rankt
+                ? `<span class="badge-green">Rankt</span>`
+                : `<span class="badge-red">Kans</span>`;
+            const positie = k.positie ? positieBadge(Math.round(k.positie)) : '—';
+            const volume = k.zoekvolume > 0 ? k.zoekvolume.toLocaleString('nl') : '—';
+            const concurrentie = k.concurrentie <= 30
+                ? `<span class="text-green">${k.concurrentie}</span>`
+                : k.concurrentie <= 60
+                    ? `<span style="color:#fbbf24">${k.concurrentie}</span>`
+                    : `<span class="text-red">${k.concurrentie}</span>`;
+            const ctrKleur = k.rankt && k.ctr < 2 ? 'color:#f87171' : k.rankt ? 'color:#02CE80' : 'color:#828282';
+            return `
+                <tr>
+                    <td><strong>${k.keyword}</strong></td>
+                    <td>${volume}</td>
+                    <td>${k.cpc ? '€' + k.cpc.toFixed(2) : '—'}</td>
+                    <td>${concurrentie}/100</td>
+                    <td>${statusBadge}</td>
+                    <td>${positie}</td>
+                    <td>${k.clicks || '—'}</td>
+                    <td>${k.impressies ? k.impressies.toLocaleString('nl') : '—'}</td>
+                    <td style="${ctrKleur}">${k.ctr ? k.ctr + '%' : '—'}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // GSC matches sectie
+        const gscSectie = document.getElementById('kw-gsc-sectie');
+        if (gscMatches.length > 0) {
+            document.getElementById('kw-gsc-sub').textContent = `${gscMatches.length} keywords in Search Console die "${seed}" bevatten — gesorteerd op clicks`;
+            document.getElementById('kw-gsc-tabel').innerHTML = gscMatches.map(k => `
+                <tr>
+                    <td><strong>${k.query}</strong></td>
+                    <td>${positieBadge(Math.round(k.position))}</td>
+                    <td>${k.clicks}</td>
+                    <td>${k.impressions.toLocaleString('nl')}</td>
+                    <td style="${k.ctr < 2 ? 'color:#f87171' : 'color:#02CE80'}">${k.ctr}%</td>
+                </tr>
+            `).join('');
+            gscSectie.style.display = 'block';
+        } else {
+            gscSectie.style.display = 'none';
+        }
+
+        document.getElementById('kw-resultaten').style.display = 'block';
+    } finally {
+        btn.textContent = 'Zoek';
+        btn.disabled = false;
+    }
+}
+
+// ── TRENDS PAGINA ────────────────────────────────────────────
+function vulTrendsPagina() {
+    const labels = trendsData.map(w => w.week);
+    const clicks = trendsData.map(w => w.gsc.clicks);
+    const sessies = trendsData.map(w => w.ga4.sessions);
+    const aanvragen = trendsData.map(w => w.ga4.offerteaanvragen);
+
+    // Chart clicks & sessies
+    if (chartClicksSessies) chartClicksSessies.destroy();
+    chartClicksSessies = new Chart(document.getElementById('chart-clicks-sessies').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Clicks', data: clicks, borderColor: '#02CE80', backgroundColor: '#02CE8015', tension: 0.4, fill: true, pointBackgroundColor: '#02CE80', pointRadius: 4 },
+                { label: 'Sessies', data: sessies, borderColor: '#7BD706', backgroundColor: '#7BD70615', tension: 0.4, fill: true, pointBackgroundColor: '#7BD706', pointRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#828282', font: { size: 12 } } } },
+            scales: {
+                x: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' } },
+                y: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' } }
+            }
+        }
+    });
+
+    // Chart aanvragen
+    if (chartAanvragen) chartAanvragen.destroy();
+    chartAanvragen = new Chart(document.getElementById('chart-aanvragen').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Offerteaanvragen',
+                data: aanvragen,
+                backgroundColor: '#02CE8066',
+                borderColor: '#02CE80',
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#828282', font: { size: 12 } } } },
+            scales: {
+                x: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' } },
+                y: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' }, beginAtZero: true }
+            }
+        }
+    });
+
+    vulPositieHistoriek();
+
+    // Tabel
+    const tbody = document.getElementById('trends-tabel');
+    tbody.innerHTML = trendsData.map((w, i) => {
+        const prev = trendsData[i - 1];
+        const diff = (val, prevVal) => {
+            if (!prev) return '';
+            const d = val - prevVal;
+            if (d === 0) return '<span class="text-muted">—</span>';
+            return d > 0
+                ? `<span class="text-green">▲${d}</span>`
+                : `<span class="text-red">▼${Math.abs(d)}</span>`;
+        };
+        return `
+            <tr>
+                <td><strong>${w.week}</strong></td>
+                <td style="color:#828282;font-size:12px">${w.start} t/m ${w.end}</td>
+                <td>${w.gsc.clicks} ${diff(w.gsc.clicks, prev?.gsc.clicks || 0)}</td>
+                <td>${w.gsc.impressions.toLocaleString('nl')} ${diff(w.gsc.impressions, prev?.gsc.impressions || 0)}</td>
+                <td>${w.gsc.ctr}%</td>
+                <td>${w.ga4.sessions.toLocaleString('nl')} ${diff(w.ga4.sessions, prev?.ga4.sessions || 0)}</td>
+                <td>${w.ga4.offerteaanvragen > 0 ? '<span class="badge-green">' + w.ga4.offerteaanvragen + '</span>' : '—'} ${diff(w.ga4.offerteaanvragen, prev?.ga4.offerteaanvragen || 0)}</td>
+                <td>${w.ga4.bounce_rate}%</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+
+// ── CLUSTERS PAGINA ──────────────────────────────────────────
+function vulClustersPagina() {
+    const cl = leadsData.cluster_attributie || {};
+    const dl = leadsData.directe_leads || {};
+    const periode = leadsData.periode || {};
+
+    // KPIs
+    const weekLeads = Object.values(cl.deze_week || {}).reduce((s, c) => s + c.leads, 0);
+    const prevLeads = Object.values(cl.vorige_week || {}).reduce((s, c) => s + c.leads, 0);
+    const cumLeads  = Object.values(cl.cumulatief || {}).reduce((s, c) => s + c.leads, 0);
+    const directNu  = dl.totaal_deze_week || 0;
+    const directVw  = dl.totaal_vorige_week || 0;
+
+    document.getElementById('cl-kpi-week').textContent = weekLeads;
+    document.getElementById('cl-kpi-week-sub').textContent = prevLeads > 0
+        ? `Vorige week: ${prevLeads}` : 'Vorige week: 0';
+    document.getElementById('cl-kpi-cum').textContent = cumLeads;
+    document.getElementById('cl-kpi-direct').textContent = directNu;
+    const directGrowth = directVw > 0 ? Math.round((directNu - directVw) / directVw * 100) : null;
+    const directEl = document.getElementById('cl-kpi-direct-sub');
+    if (directGrowth !== null) {
+        directEl.textContent = `${directGrowth >= 0 ? '▲' : '▼'} ${Math.abs(directGrowth)}% t.o.v. vorige week`;
+        directEl.className = 'kpi-change ' + (directGrowth >= 0 ? 'up' : 'down');
+    } else {
+        directEl.textContent = `Vorige week: ${directVw}`;
+    }
+
+    // Periode labels
+    const ws = periode.deze_week?.start || '';
+    const we = periode.deze_week?.end || '';
+    document.getElementById('cl-week-periode').textContent = ws && we ? `${ws} t/m ${we}` : '';
+    document.getElementById('cl-cum-periode').textContent = `20 maart t/m ${we || 'nu'}`;
+
+    // Deze week tabel
+    const weekRows = Object.entries(cl.deze_week || {});
+    document.getElementById('cl-week-tabel').innerHTML = weekRows.length
+        ? weekRows.map(([cluster, d]) => {
+            const conv = d.bezoekers > 0 ? (d.leads / d.bezoekers * 100).toFixed(1) + '%' : '—';
+            const vw = (cl.vorige_week || {})[cluster]?.leads ?? '—';
+            const leadsEl = d.leads > 0
+                ? `<span class="badge-green">${d.leads}</span>`
+                : `<span class="text-muted">0</span>`;
+            return `<tr>
+                <td><span style="color:#02CE80">${cluster}</span></td>
+                <td>${d.bezoekers}</td>
+                <td>${leadsEl}</td>
+                <td>${conv}</td>
+                <td><span class="text-muted">${vw}</span></td>
+            </tr>`;
+        }).join('')
+        : '<tr><td colspan="5" class="loading">Geen data</td></tr>';
+
+    // Cumulatief tabel
+    const cumRows = Object.entries(cl.cumulatief || {});
+    document.getElementById('cl-cum-tabel').innerHTML = cumRows.length
+        ? cumRows.map(([cluster, d]) => {
+            const conv = d.bezoekers > 0 ? (d.leads / d.bezoekers * 100).toFixed(1) + '%' : '—';
+            const leadsEl = d.leads > 0
+                ? `<span class="badge-green">${d.leads}</span>`
+                : `<span class="text-muted">0</span>`;
+            return `<tr>
+                <td><span style="color:#02CE80">${cluster}</span></td>
+                <td>${d.bezoekers}</td>
+                <td>${leadsEl}</td>
+                <td>${conv}</td>
+            </tr>`;
+        }).join('')
+        : '<tr><td colspan="4" class="loading">Geen data</td></tr>';
+
+    // Directe leads per pagina
+    document.getElementById('cl-pagina-tabel').innerHTML = (dl.per_pagina || []).length
+        ? (dl.per_pagina).map(r => `
+            <tr>
+                <td><span style="color:#02CE80">${r.pagina}</span></td>
+                <td><span class="badge-green">${r.leads}</span></td>
+            </tr>`).join('')
+        : '<tr><td colspan="2" class="text-muted">Geen directe leads</td></tr>';
+
+    // Leads per kanaal
+    const totaalDirect = dl.totaal_deze_week || 0;
+    document.getElementById('cl-kanaal-tabel').innerHTML = (dl.per_kanaal || []).length
+        ? (dl.per_kanaal).map(k => {
+            const pct = totaalDirect > 0 ? (k.leads / totaalDirect * 100).toFixed(0) + '%' : '—';
+            return `<tr>
+                <td>${k.kanaal}</td>
+                <td>${k.leads}</td>
+                <td class="text-muted">${pct}</td>
+            </tr>`;
+        }).join('')
+        : '<tr><td colspan="3" class="text-muted">Geen data</td></tr>';
+}
+
+// ── GSC CONTENT-PAGINA STATUS ────────────────────────────────
+function vulContentPagesStatus() {
+    // Haal count op uit ga4Data of leadsData (beide slaan het op)
+    const count = ga4Data?.content_pages_count ?? leadsData?.content_pages_count ?? null;
+    const statusEl  = document.getElementById('status-contentpages');
+    const labelEl   = document.getElementById('status-contentpages-label');
+    const filterEl  = document.getElementById('cl-filter-label');
+
+    if (count !== null && count > 0) {
+        labelEl.textContent = `${count} content-pagina's (GSC filter)`;
+        statusEl.style.display = 'flex';
+        if (filterEl) filterEl.textContent = `Gefilterd op ${count} GSC content-pagina's — geen plaatsen/bedrijven`;
+    } else {
+        statusEl.style.display = 'none';
+        if (filterEl) filterEl.textContent = 'Gefilterd — geen nep-leads (prefix whitelist)';
+    }
+}
+
+// ── KANSEN & LAAGHANGEND FRUIT ───────────────────────────────
+function vulKansen() {
+    if (!gscData) return;
+    // content_keywords = gefilterd (geen bedrijfs-/plaatszoekopdrachten); fallback op top_keywords
+    const kw = (gscData.content_keywords && gscData.content_keywords.length)
+        ? gscData.content_keywords
+        : (gscData.top_keywords || []);
+
+    // CTR-kansen: positie 1-10, CTR < 3%, impressies >= 30
+    const ctrKansen = kw
+        .filter(k => k.position <= 10 && k.ctr < 3.0 && k.impressions >= 30)
+        .sort((a, b) => b.impressions - a.impressions)
+        .slice(0, 8);
+
+    // Positie-kansen: pos 4-15, impressies >= 30
+    const posKansen = kw
+        .filter(k => k.position >= 4 && k.position <= 15 && k.impressions >= 30)
+        .sort((a, b) => b.impressions - a.impressions)
+        .slice(0, 8);
+
+    const sectie = document.getElementById('kansen-sectie');
+    if (ctrKansen.length === 0 && posKansen.length === 0) {
+        sectie.style.display = 'none';
+        return;
+    }
+    sectie.style.display = 'grid';
+
+    document.getElementById('kansen-ctr-tabel').innerHTML = ctrKansen.length
+        ? ctrKansen.map(k => `
+            <tr>
+                <td>${k.query}</td>
+                <td>${k.impressions}</td>
+                <td>${positieBadge(Math.round(k.position))}</td>
+                <td style="color:#f87171">${k.ctr}%</td>
+                <td><span class="badge-yellow">Title/meta</span></td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="text-muted">Geen kansen gevonden</td></tr>';
+
+    document.getElementById('kansen-pos-tabel').innerHTML = posKansen.length
+        ? posKansen.map(k => `
+            <tr>
+                <td>${k.query}</td>
+                <td>${k.impressions}</td>
+                <td>${positieBadge(Math.round(k.position))}</td>
+                <td>${k.clicks}</td>
+                <td><span class="badge-yellow">Content</span></td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="text-muted">Geen kansen gevonden</td></tr>';
+}
+
+async function stuurMail() {
+    // Beheer beide knoppen (header + clusters pagina)
+    const btns = [
+        document.getElementById('mail-btn'),
+        document.getElementById('mail-header-btn')
+    ].filter(Boolean);
+    const icons = [
+        document.getElementById('mail-icon'),
+        document.getElementById('mail-header-icon')
+    ].filter(Boolean);
+
+    btns.forEach(b => b.classList.add('loading'));
+    icons.forEach(i => i.textContent = '...');
+
+    try {
+        const res = await fetch('/api/mail-rapport', { method: 'POST' });
+        const result = await res.json();
+        if (result.ok) {
+            icons.forEach(i => i.textContent = '✓');
+            btns.forEach(b => { b.style.color = '#02CE80'; b.style.borderColor = '#02CE80'; });
+            setTimeout(() => {
+                icons.forEach(i => i.textContent = '✉');
+                btns.forEach(b => { b.style.color = ''; b.style.borderColor = ''; });
+            }, 3000);
+        } else {
+            alert('Fout bij versturen:\n' + result.error);
+            icons.forEach(i => i.textContent = '✉');
+        }
+    } catch (e) {
+        alert('Server niet bereikbaar');
+        icons.forEach(i => i.textContent = '✉');
+    } finally {
+        btns.forEach(b => b.classList.remove('loading'));
+    }
+}
+
+async function refreshLeads() {
+    const btn = document.getElementById('leads-refresh-btn');
+    btn.classList.add('loading');
+    btn.querySelector('.spin').style.display = 'inline-block';
+    try {
+        const res = await fetch('/api/refresh-leads', { method: 'POST' });
+        const result = await res.json();
+        if (!result.ok) {
+            alert('Fout bij vernieuwen:\n' + result.output);
+            return;
+        }
+        const [leadsRes, histRes] = await Promise.all([
+            fetch('/api/leads', { cache: 'no-store' }), fetch('/api/leads-history', { cache: 'no-store' })
+        ]);
+        leadsData = await leadsRes.json();
+        leadsHistoryData = await histRes.json();
+        vulClustersPagina();
+    } catch (e) { alert('Server niet bereikbaar'); }
+    finally { btn.classList.remove('loading'); }
+}
+
+// ── CANNIBALISATIE (Search Console) ──────────────────────────
+function vulCannibalisatie() {
+    const data = gscData?.cannibalisatie || [];
+    const tbody = document.getElementById('cannibalisatie-tabel');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Geen cannibalisatie gevonden — goed!</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(c => {
+        const paginaLinks = c.paginas.map(p =>
+            `<span style="color:#02CE80;font-family:monospace;font-size:11px">${p.page}</span>
+             <span class="text-muted" style="font-size:11px">(#${p.position})</span>`
+        ).join(' <span style="color:#f87171">vs</span> ');
+        return `<tr>
+            <td style="font-size:13px">${c.query}</td>
+            <td>${c.impressions}</td>
+            <td style="font-size:12px;line-height:1.8">${paginaLinks}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── POSITIE HISTORIEK (Trends) ────────────────────────────────
+function vulPositieHistoriek() {
+    if (!trendsData || !trendsData.some(w => w.top_pages?.length)) return;
+    const recentste = [...trendsData].reverse().find(w => w.top_pages?.length);
+    if (!recentste) return;
+    const topPaginas = recentste.top_pages.slice(0, 5).map(p => p.page);
+    const labels  = trendsData.map(w => w.week);
+    const kleuren = ['#02CE80', '#4285f4', '#fbbf24', '#a78bfa', '#f87171'];
+    const datasets = topPaginas.map((pagina, i) => ({
+        label: pagina,
+        data: trendsData.map(w => {
+            const p = (w.top_pages || []).find(p => p.page === pagina);
+            return p ? p.position : null;
+        }),
+        borderColor: kleuren[i],
+        backgroundColor: 'transparent',
+        tension: 0.4,
+        pointBackgroundColor: kleuren[i],
+        pointRadius: 4,
+        spanGaps: true,
+    }));
+    if (chartPositieHistoriek) chartPositieHistoriek.destroy();
+    chartPositieHistoriek = new Chart(
+        document.getElementById('chart-positie-historiek').getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#828282', font: { size: 11 } } } },
+            scales: {
+                x: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' } },
+                y: {
+                    ticks: { color: '#828282' }, grid: { color: '#ffffff0a' },
+                    reverse: true, min: 1,
+                    title: { display: true, text: 'Positie (lager = beter)', color: '#828282', font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+// ── ANALYSE PAGINA ────────────────────────────────────────────
+function vulAnalysePagina() {
+    vulClusterTrendChart();
+    vulROI();
+    vulFeaturedSnippets();
+    vulVerwaarloosde();
+}
+
+function vulClusterTrendChart() {
+    const leeg   = document.getElementById('cl-trend-leeg');
+    const canvas = document.getElementById('chart-cluster-trend');
+    if (!leadsHistoryData || leadsHistoryData.length === 0) {
+        leeg.style.display = 'block'; canvas.style.display = 'none'; return;
+    }
+    leeg.style.display = 'none'; canvas.style.display = 'block';
+    const labels   = leadsHistoryData.map(w => w.week);
+    const clusters = Object.keys(leadsHistoryData[leadsHistoryData.length - 1].clusters || {});
+    const kleuren  = ['#02CE80', '#4285f4', '#fbbf24', '#a78bfa'];
+    const datasets = clusters.map((cluster, i) => ({
+        label: cluster,
+        data: leadsHistoryData.map(w => w.clusters?.[cluster]?.leads ?? 0),
+        borderColor: kleuren[i % kleuren.length],
+        backgroundColor: kleuren[i % kleuren.length] + '15',
+        tension: 0.4, fill: false,
+        pointBackgroundColor: kleuren[i % kleuren.length], pointRadius: 5,
+    }));
+    datasets.push({
+        label: 'Totaal clusters',
+        data: leadsHistoryData.map(w =>
+            Object.values(w.clusters || {}).reduce((s, c) => s + (c.leads || 0), 0)
+        ),
+        borderColor: '#fff', backgroundColor: 'transparent',
+        borderDash: [4, 4], tension: 0.4, pointRadius: 3,
+    });
+    if (chartClusterTrend) chartClusterTrend.destroy();
+    chartClusterTrend = new Chart(
+        document.getElementById('chart-cluster-trend').getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#828282', font: { size: 12 } } } },
+            scales: {
+                x: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' } },
+                y: { ticks: { color: '#828282' }, grid: { color: '#ffffff0a' }, beginAtZero: true }
+            }
+        }
+    });
+}
+
+function vulROI() {
+    if (!leadsData) return;
+    const metaLeads = leadsData.meta_leads?.totaal_deze_week || 0;
+    const orgLeads  = leadsData.directe_leads?.totaal_deze_week || 0;
+    document.getElementById('meta-roi-leads').textContent = metaLeads;
+    document.getElementById('org-roi-leads').textContent  = orgLeads;
+    const metaSpend = parseFloat(document.getElementById('meta-spend-input')?.value) || 0;
+    const orgSpend  = parseFloat(document.getElementById('org-spend-input')?.value) || 0;
+    const metaCPL = metaLeads > 0 && metaSpend > 0 ? '€' + (metaSpend / metaLeads).toFixed(0) : '—';
+    const orgMonthlyLeads = orgLeads * 4.3;
+    const orgCPL = orgMonthlyLeads > 0 && orgSpend > 0 ? '€' + (orgSpend / orgMonthlyLeads).toFixed(0) : '—';
+    document.getElementById('meta-roi-cpl').textContent = metaCPL;
+    document.getElementById('org-roi-cpl').textContent  = orgCPL;
+}
+
+function vulFeaturedSnippets() {
+    const data  = gscData?.featured_snippet_kansen || [];
+    const tbody = document.getElementById('featured-tabel');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Geen kansen gevonden met huidige data</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(k => `
+        <tr>
+            <td style="font-size:13px">${k.query}</td>
+            <td>${positieBadge(Math.round(k.position))}</td>
+            <td style="color:#f87171">${k.ctr}%</td>
+            <td style="color:#828282">${k.verwacht_ctr}%</td>
+            <td><span class="badge-green">+${k.potentieel_clicks} clicks</span></td>
+        </tr>`).join('');
+}
+
+function vulVerwaarloosde() {
+    const data  = gscData?.verwaarloosde_paginas || [];
+    const tbody = document.getElementById('verwaarloosde-tabel');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Geen dalende pagina\'s gevonden</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(p => `
+        <tr>
+            <td><span style="color:#02CE80;font-family:monospace;font-size:12px">${p.page}</span></td>
+            <td>${positieBadge(Math.round(p.position))}</td>
+            <td>${p.impressions}</td>
+            <td>${p.impressions_prev}</td>
+            <td><span class="badge-red">-${p.daling_pct}%</span></td>
+        </tr>`).join('');
+}
+
+laadData();
+
+// ── CHAT ─────────────────────────────────────────────────────
+const AGENTS = {
+    seo: {
+        naam: 'SEO Agent', tag: 'Rankings & keywords',
+        intro: 'Ik analyseer je GSC-data: rankings, CTR-kansen en keyword-mogelijkheden.',
+        placeholder: 'Bijv. "Welke keywords verdienen meer aandacht?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av1" cx="50%" cy="35%"><stop offset="0%" stop-color="#1e3a6e"/><stop offset="100%" stop-color="#0d1f3c"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av1)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#2563eb"/>
+          <path d="M22 54 L30 59 L38 54" fill="white" opacity="0.85"/>
+          <circle cx="30" cy="25" r="13" fill="#f5c49a"/>
+          <path d="M17 21 Q19 11 30 12 Q41 11 43 21 Q41 15 30 16 Q19 15 17 21Z" fill="#1a1a1a"/>
+          <rect x="20" y="22" width="8" height="5" rx="2.5" fill="none" stroke="#444" stroke-width="1.8"/>
+          <rect x="32" y="22" width="8" height="5" rx="2.5" fill="none" stroke="#444" stroke-width="1.8"/>
+          <line x1="28" y1="24.5" x2="32" y2="24.5" stroke="#444" stroke-width="1.5"/>
+          <line x1="16" y1="24.5" x2="20" y2="24.5" stroke="#444" stroke-width="1.3"/>
+          <line x1="40" y1="24.5" x2="44" y2="24.5" stroke="#444" stroke-width="1.3"/>
+          <circle cx="24" cy="24.5" r="1.4" fill="#222"/>
+          <circle cx="36" cy="24.5" r="1.4" fill="#222"/>
+          <path d="M25 30 Q30 34 35 30" stroke="#c07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>`
+    },
+    conversie: {
+        naam: 'Conversie Agent', tag: 'Traffic → leads',
+        intro: 'Ik kijk welke pagina\'s veel verkeer krijgen maar weinig converteren.',
+        placeholder: 'Bijv. "Waar haken bezoekers af?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av2" cx="50%" cy="35%"><stop offset="0%" stop-color="#14532d"/><stop offset="100%" stop-color="#052e16"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av2)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#16a34a"/>
+          <path d="M22 52 L30 57 L38 52" fill="white" opacity="0.9"/>
+          <circle cx="30" cy="25" r="13" fill="#fde8c8"/>
+          <path d="M18 20 Q20 11 30 12 Q40 11 42 20 Q36 14 30 14 Q24 14 18 20Z" fill="#c8a060"/>
+          <circle cx="25" cy="24" r="1.8" fill="#333"/>
+          <circle cx="35" cy="24" r="1.8" fill="#333"/>
+          <path d="M26 30 Q30 34 34 30" stroke="#c07830" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M26 35 L27 40 L30 37 L33 40 L34 35" fill="#16a34a" opacity="0.8"/>
+        </svg>`
+    },
+    content_gap: {
+        naam: 'Content Gap', tag: 'Nieuwe kansen',
+        intro: 'Ik zoek zoekwoorden waar je nog geen content voor hebt maar kansen liggen.',
+        placeholder: 'Bijv. "Welke content ontbreekt nog?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av3" cx="50%" cy="35%"><stop offset="0%" stop-color="#3b1f6e"/><stop offset="100%" stop-color="#1a0d35"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av3)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#7c3aed"/>
+          <circle cx="30" cy="25" r="13" fill="#f5c49a"/>
+          <path d="M17 18 Q18 10 30 11 Q42 10 43 18 L41 22 Q38 13 30 13 Q22 13 19 22Z" fill="#8b4513"/>
+          <path d="M17 18 Q15 22 17 24 Q18 15 30 15 Q42 15 43 24 Q45 22 43 18 Q41 10 30 10 Q19 10 17 18Z" fill="#6b3410"/>
+          <circle cx="25" cy="24" r="1.8" fill="#333"/>
+          <circle cx="35" cy="24" r="1.8" fill="#333"/>
+          <path d="M25 30 Q30 34 35 30" stroke="#c07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <circle cx="42" cy="38" r="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+          <line x1="46.2" y1="42.2" x2="50" y2="46" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>`
+    },
+    anomalie: {
+        naam: 'Anomalie Detective', tag: 'Pieken & dalingen',
+        intro: 'Ik signaleer opvallende dalingen of pieken in verkeer, CTR of leads.',
+        placeholder: 'Bijv. "Zijn er onverwachte dalingen deze week?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av4" cx="50%" cy="35%"><stop offset="0%" stop-color="#7c1d1d"/><stop offset="100%" stop-color="#3b0d0d"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av4)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#dc2626"/>
+          <circle cx="30" cy="26" r="13" fill="#f5c49a"/>
+          <path d="M12 22 L30 10 L48 22 L44 22 Q42 14 30 14 Q18 14 16 22Z" fill="#1a1a1a"/>
+          <path d="M12 22 L16 22 L16 18 Q14 19 12 22Z" fill="#1a1a1a"/>
+          <path d="M48 22 L44 22 L44 18 Q46 19 48 22Z" fill="#1a1a1a"/>
+          <circle cx="25" cy="25" r="2" fill="#333"/>
+          <circle cx="35" cy="25" r="2" fill="#333"/>
+          <path d="M26 31 Q30 28 34 31" stroke="#c07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M27 34 L30 31 L33 34" fill="#dc2626" opacity="0.7"/>
+        </svg>`
+    },
+    rapportage: {
+        naam: 'Rapportage Agent', tag: 'Rapporten & exports',
+        intro: 'Ik genereer kant-en-klare rapporten: wat ging goed, wat daalde, actiepunten.',
+        placeholder: 'Bijv. "Maak een weekrapport voor dakdekkersgids.nl"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av5" cx="50%" cy="35%"><stop offset="0%" stop-color="#134e4a"/><stop offset="100%" stop-color="#042f2e"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av5)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#0d9488"/>
+          <path d="M22 53 L30 58 L38 53" fill="white" opacity="0.85"/>
+          <circle cx="30" cy="25" r="13" fill="#fde8c8"/>
+          <path d="M17 20 Q20 11 30 12 Q40 11 43 20 Q38 13 30 13 Q22 13 17 20Z" fill="#2d2d2d"/>
+          <path d="M17 20 Q15 23 17 26 Q18 16 30 16 Q42 16 43 26 Q45 23 43 20 Q40 11 30 12 Q20 11 17 20Z" fill="#1a1a1a"/>
+          <rect x="19" y="21" width="8" height="5" rx="2.5" fill="none" stroke="#444" stroke-width="1.6"/>
+          <rect x="33" y="21" width="8" height="5" rx="2.5" fill="none" stroke="#444" stroke-width="1.6"/>
+          <line x1="27" y1="23.5" x2="33" y2="23.5" stroke="#444" stroke-width="1.5"/>
+          <circle cx="23" cy="23.5" r="1.4" fill="#222"/>
+          <circle cx="37" cy="23.5" r="1.4" fill="#222"/>
+          <path d="M25 30 Q30 34 35 30" stroke="#c07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <rect x="38" y="33" width="10" height="13" rx="2" fill="#0d9488" opacity="0.9"/>
+          <line x1="40" y1="37" x2="46" y2="37" stroke="white" stroke-width="1" opacity="0.8"/>
+          <line x1="40" y1="40" x2="46" y2="40" stroke="white" stroke-width="1" opacity="0.8"/>
+          <line x1="40" y1="43" x2="44" y2="43" stroke="white" stroke-width="1" opacity="0.8"/>
+        </svg>`
+    },
+    concurrentie: {
+        naam: 'Concurrentie Agent', tag: 'SERP-analyse',
+        intro: 'Ik analyseer welke domeinen jou verdringen op jouw belangrijkste zoekwoorden.',
+        placeholder: 'Bijv. "Wie wint terrein op mijn top-keywords?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av6" cx="50%" cy="35%"><stop offset="0%" stop-color="#78350f"/><stop offset="100%" stop-color="#3b1a06"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av6)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#d97706"/>
+          <circle cx="30" cy="25" r="13" fill="#f5c49a"/>
+          <path d="M20 18 L22 13 L24 16 L30 11 L36 16 L38 13 L40 18 Q38 14 30 14 Q22 14 20 18Z" fill="#d97706"/>
+          <path d="M20 18 L18 16 L20 14 Q19 15 20 18Z" fill="#b45309"/>
+          <path d="M40 18 L42 16 L40 14 Q41 15 40 18Z" fill="#b45309"/>
+          <circle cx="25" cy="25" r="1.9" fill="#333"/>
+          <circle cx="35" cy="25" r="1.9" fill="#333"/>
+          <path d="M25 31 Q30 35 35 31" stroke="#c07830" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>`
+    },
+    planning: {
+        naam: 'Plannings Agent', tag: 'Seizoen & timing',
+        intro: 'Ik analyseer seizoenspatronen en adviseer wanneer je content moet publiceren.',
+        placeholder: 'Bijv. "Wanneer piekt het verkeer voor dakisolatie?"',
+        avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="av7" cx="50%" cy="35%"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#0d0b2a"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="30" fill="url(#av7)"/>
+          <ellipse cx="30" cy="58" rx="20" ry="13" fill="#4f46e5"/>
+          <path d="M22 53 L30 58 L38 53" fill="white" opacity="0.85"/>
+          <circle cx="30" cy="25" r="13" fill="#fde8c8"/>
+          <path d="M17 22 Q17 11 30 11 Q43 11 43 22 L41 20 Q39 14 30 14 Q21 14 19 20Z" fill="#6d4c41"/>
+          <path d="M17 22 Q15 20 17 18 Q17 12 30 12 Q43 12 43 18 Q45 20 43 22" fill="#5d4037" opacity="0.5"/>
+          <path d="M17 22 Q18 19 22 18 L22 16 Q19 17 17 22Z" fill="#4e342e"/>
+          <circle cx="25" cy="24" r="1.8" fill="#333"/>
+          <circle cx="35" cy="24" r="1.8" fill="#333"/>
+          <path d="M25 30 Q30 34 35 30" stroke="#c07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <rect x="38" y="34" width="11" height="10" rx="2" fill="#4f46e5" opacity="0.9"/>
+          <line x1="40" y1="33" x2="40" y2="36" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47" y1="33" x2="47" y2="36" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="39" y1="38" x2="48" y2="38" stroke="white" stroke-width="0.8" opacity="0.5"/>
+          <circle cx="41" cy="40.5" r="1" fill="white" opacity="0.7"/>
+          <circle cx="44.5" cy="40.5" r="1" fill="white" opacity="0.7"/>
+        </svg>`
+    },
+};
+
+const AGENT_KEYS = Object.keys(AGENTS);
+let actieveTab = 'seo';
+let chatGeschiedenissen = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
+let chatSuggesties     = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
+let gekozenBestand = null;
+let instructiesPanelOpen = false;
+
+function renderAgentGrid() {
+    const grid = document.getElementById('agent-grid');
+    grid.innerHTML = AGENT_KEYS.map(key => {
+        const a = AGENTS[key];
+        return `<div class="agent-card ${key === actieveTab ? 'active' : ''}" onclick="wisselTab('${key}')">
+            <div class="agent-avatar">${a.avatar}</div>
+            <div class="agent-naam">${a.naam}</div>
+            <div class="agent-tag">${a.tag}</div>
+        </div>`;
+    }).join('');
+}
+
+function wisselTab(tab) {
+    actieveTab = tab;
+    renderAgentGrid();
+    document.getElementById('chat-active-label').textContent = AGENTS[tab].naam;
+    document.getElementById('chat-input').placeholder = AGENTS[tab].placeholder;
+    laadInstructies();
+    renderChatGeschiedenis();
+}
+
+function toggleInstructies() {
+    instructiesPanelOpen = !instructiesPanelOpen;
+    document.getElementById('instructies-panel').classList.toggle('open', instructiesPanelOpen);
+    document.getElementById('instructies-toggle').classList.toggle('open', instructiesPanelOpen);
+    document.getElementById('instructies-pijl').textContent = instructiesPanelOpen ? '⌄' : '›';
+}
+
+function slaInstructiesOp() {
+    localStorage.setItem(`chat-instructies-${actieveTab}`, document.getElementById('instructies-input').value);
+}
+
+function laadInstructies() {
+    document.getElementById('instructies-input').value = localStorage.getItem(`chat-instructies-${actieveTab}`) || '';
+}
+
+function getInstructies() {
+    return localStorage.getItem(`chat-instructies-${actieveTab}`) || '';
+}
+
+function bestandGekozen(input) {
+    gekozenBestand = input.files[0] || null;
+    if (gekozenBestand) {
+        document.getElementById('chat-file-naam').textContent = gekozenBestand.name;
+        document.getElementById('chat-file-chip').style.display = 'flex';
+    }
+}
+
+function verwijderBestand() {
+    gekozenBestand = null;
+    document.getElementById('chat-file-chip').style.display = 'none';
+    document.getElementById('chat-file-input').value = '';
+}
+
+function renderChatGeschiedenis() {
+    const container = document.getElementById('chat-messages');
+    const geschiedenis = chatGeschiedenissen[actieveTab];
+    const suggesties = chatSuggesties[actieveTab];
+
+    if (geschiedenis.length === 0) {
+        let scanKnop = '';
+        if (actieveTab === 'rapportage') {
+            scanKnop = `<div style="margin-top:12px"><button class="chat-mail-btn" style="font-size:12px;padding:8px 14px;border-color:#02CE8040;color:#02CE80" onclick="verstuurSuggestie('Scan het volledige dashboard en genereer een compleet rapport met de meest opvallende bevindingen en direct toepasbare acties.')">🔍 Dashboard scannen</button></div>`;
+        } else if (actieveTab === 'concurrentie') {
+            scanKnop = `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="chat-mail-btn" style="font-size:12px;padding:8px 14px;border-color:#02CE8040;color:#02CE80" onclick="verstuurSuggestie('Analyseer de concurrentiedata en geef een volledig overzicht van dreigingen, content-gaten en concrete acties.')">🔍 Analyseer concurrenten</button>
+                <button class="chat-mail-btn" id="concurrent-refresh-btn" style="font-size:12px;padding:8px 14px" onclick="vernieuwConcurrentData(this)">🔄 Data vernieuwen</button>
+            </div>`;
+        }
+        container.innerHTML = `<div class="chat-msg-wrap ai"><div class="chat-msg">${AGENTS[actieveTab].intro}${scanKnop}</div></div>`;
+    } else {
+        container.innerHTML = geschiedenis.map((m, i) => {
+            const isLaatsteAI = m.role === 'assistant' && i === geschiedenis.length - 1;
+            const mailKnop = (isLaatsteAI && actieveTab === 'rapportage')
+                ? `<div><button class="chat-mail-btn" id="mail-stuur-btn" onclick="stuurAlsMail(this)">✉ Stuur als mail</button></div>`
+                : '';
+            return `<div class="chat-msg-wrap ${m.role === 'user' ? 'user' : 'ai'}">
+                <div class="chat-msg">${m.content.replace(/\n/g, '<br>')}</div>
+                ${mailKnop}
+            </div>` + (isLaatsteAI && suggesties.length ? `
+            <div class="chat-suggesties">
+                ${suggesties.map(v => `<button class="chat-chip" onclick="verstuurSuggestie(this.textContent)">${v}</button>`).join('')}
+            </div>` : '');
+        }).join('');
+    }
+    container.scrollTop = container.scrollHeight;
+}
+
+function verstuurSuggestie(vraag) {
+    document.getElementById('chat-input').value = vraag;
+    verstuurChat();
+}
+
+async function vernieuwConcurrentData(btn) {
+    btn.textContent = '⏳ Sitemaps ophalen...';
+    btn.disabled = true;
+    try {
+        const res = await fetch('/api/fetch-competitors', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+            btn.textContent = `✓ Klaar (${data.dreigingen} dreigingen)`;
+            btn.classList.add('verzonden');
+            setTimeout(() => verstuurSuggestie('Analyseer de concurrentiedata en geef een volledig overzicht van dreigingen, content-gaten en concrete acties.'), 600);
+        } else {
+            btn.textContent = '✗ ' + (data.error || 'Fout');
+            btn.disabled = false;
+        }
+    } catch (e) {
+        btn.textContent = '✗ Server niet bereikbaar';
+        btn.disabled = false;
+    }
+}
+
+async function stuurAlsMail(btn) {
+    const geschiedenis = chatGeschiedenissen[actieveTab];
+    const laatste = [...geschiedenis].reverse().find(m => m.role === 'assistant');
+    if (!laatste) return;
+    btn.textContent = '✉ Versturen...';
+    btn.disabled = true;
+    try {
+        const res = await fetch('/api/mail-rapport-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tekst: laatste.content, onderwerp: 'Rapport dakdekkersgids.nl — ' + new Date().toLocaleDateString('nl-NL') })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            btn.textContent = '✓ Mail verzonden';
+            btn.classList.add('verzonden');
+        } else {
+            btn.textContent = '✗ Fout: ' + data.error;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        btn.textContent = '✗ Server niet bereikbaar';
+        btn.disabled = false;
+    }
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuurChat(); }
+});
+
+async function verstuurChat() {
+    const input = document.getElementById('chat-input');
+    const vraag = input.value.trim();
+    if (!vraag) return;
+
+    const bestandBijDitBericht = gekozenBestand;
+    if (gekozenBestand) verwijderBestand();
+
+    const container = document.getElementById('chat-messages');
+    const sendBtn = document.getElementById('chat-send');
+    const geschiedenis = chatGeschiedenissen[actieveTab];
+
+    geschiedenis.push({ role: 'user', content: vraag });
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    renderChatGeschiedenis();
+
+    const typingId = 'typing-' + Date.now();
+    container.innerHTML += `<div class="chat-msg-wrap ai"><div class="chat-msg typing" id="${typingId}">Even denken...</div></div>`;
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        let res;
+        const payload = { tab: actieveTab, pagina: huidigePagina, messages: geschiedenis, instructies: getInstructies() };
+        if (bestandBijDitBericht) {
+            const fd = new FormData();
+            fd.append('data', JSON.stringify(payload));
+            fd.append('file', bestandBijDitBericht);
+            res = await fetch('/api/chat', { method: 'POST', body: fd });
+        } else {
+            res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        }
+        const data = await res.json();
+        document.getElementById(typingId)?.closest('.chat-msg-wrap').remove();
+        const antwoord = data.antwoord || data.error || 'Onbekende fout';
+        geschiedenis.push({ role: 'assistant', content: antwoord });
+        chatSuggesties[actieveTab] = data.suggesties || [];
+        renderChatGeschiedenis();
+    } catch (e) {
+        document.getElementById(typingId)?.closest('.chat-msg-wrap').remove();
+        container.innerHTML += `<div class="chat-msg-wrap ai"><div class="chat-msg" style="color:#f87171">Fout: server niet bereikbaar</div></div>`;
+    } finally {
+        sendBtn.disabled = false;
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// Init
+wisselTab('seo');
+haalSignaalOp('dashboard');
+
+</script>
+</body>
+</html>

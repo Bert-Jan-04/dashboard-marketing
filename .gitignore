@@ -1,0 +1,17 @@
+# Secrets & credentials
+.env
+credentials/
+
+# Data (gegenereerd, niet in repo)
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# Editor
+.claude/
