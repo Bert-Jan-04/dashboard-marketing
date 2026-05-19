@@ -6,6 +6,10 @@ credentials/
 data/*
 !data/clarity_data.json
 
+# One-off scripts (geen onderdeel van de app)
+maak_rapport.py
+maak_verslag.py
+
 # Python cache
 __pycache__/
 *.pyc

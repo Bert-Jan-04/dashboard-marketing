@@ -1,3 +1,4 @@
+import sys
 import json
 import os
 from datetime import date, timedelta
@@ -8,13 +9,16 @@ from google.analytics.data_v1beta.types import (
     DateRange, Dimension, Metric, RunReportRequest,
     FilterExpression, FilterExpressionList, Filter, OrderBy
 )
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 from rules import (
     CREDENTIALS_FILE, PROPERTY_ID,
     conversie_filter, get_content_pages_from_gsc,
     is_content_page,
 )
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "ga4_data.json")
+DATA_FILE = os.path.join(ROOT_DIR, "data", "ga4_data.json")
 
 today      = date.today()
 week_end   = today - timedelta(days=1)

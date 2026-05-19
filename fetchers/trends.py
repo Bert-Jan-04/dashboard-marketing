@@ -9,10 +9,11 @@ from google.analytics.data_v1beta.types import (
     FilterExpression, Filter
 )
 
-CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), "credentials", "credentials.json")
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CREDENTIALS_FILE = os.path.join(ROOT_DIR, "credentials", "credentials.json")
 SITE_URL = "https://dakdekkersgids.nl/"
 PROPERTY_ID = "355158317"
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "trends_data.json")
+DATA_FILE = os.path.join(ROOT_DIR, "data", "trends_data.json")
 SCOPES_GSC = ["https://www.googleapis.com/auth/webmasters.readonly"]
 SCOPES_GA4 = ["https://www.googleapis.com/auth/analytics.readonly"]
 WEKEN = 8

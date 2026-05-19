@@ -3,7 +3,8 @@ import os
 import requests
 import xml.etree.ElementTree as ET
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "sitemap_urls.json")
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_FILE = os.path.join(ROOT_DIR, "data", "sitemap_urls.json")
 SITEMAP_INDEX = "https://dakdekkersgids.nl/sitemap_index.xml"
 NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 

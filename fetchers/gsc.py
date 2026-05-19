@@ -1,14 +1,18 @@
+import sys
 import json
 import os
 from collections import defaultdict
 from datetime import date, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 from rules import is_content_page as _is_content_page
 
-CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), "credentials", "credentials.json")
+CREDENTIALS_FILE = os.path.join(ROOT_DIR, "credentials", "credentials.json")
 SITE_URL  = "https://dakdekkersgids.nl/"
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "gsc_data.json")
+DATA_FILE = os.path.join(ROOT_DIR, "data", "gsc_data.json")
 SCOPES    = ["https://www.googleapis.com/auth/webmasters.readonly"]
 
 today      = date.today()

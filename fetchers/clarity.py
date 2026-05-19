@@ -8,7 +8,8 @@ load_dotenv()
 
 TOKEN      = os.getenv("CLARITY_API_TOKEN")
 PROJECT_ID = os.getenv("CLARITY_PROJECT_ID")
-DATA_FILE  = os.path.join(os.path.dirname(__file__), "data", "clarity_data.json")
+ROOT_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_FILE  = os.path.join(ROOT_DIR, "data", "clarity_data.json")
 BASE_URL   = "https://www.clarity.ms/export-data/api/v1"
 
 

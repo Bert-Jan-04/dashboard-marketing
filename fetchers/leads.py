@@ -14,6 +14,7 @@ Strikte regels:
        - Open funnel, isDirectlyFollowedBy: false
 """
 
+import sys
 import json
 import os
 from datetime import date, timedelta
@@ -24,6 +25,9 @@ from google.analytics.data_v1beta.types import (
     DateRange, Dimension, Metric, RunReportRequest,
     FilterExpression, FilterExpressionList, Filter, OrderBy
 )
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 from rules import (
     CREDENTIALS_FILE, PROPERTY_ID, CLUSTERS,
     lead_filter, meta_lead_filter as _meta_lead_filter,
@@ -320,12 +324,12 @@ def main():
         "content_pages_count": len(valid_pages) if valid_pages is not None else None,
     }
 
-    output_file = os.path.join(os.path.dirname(__file__), "data", "leads_week.json")
+    output_file = os.path.join(ROOT_DIR, "data", "leads_week.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
     # ── Historiek opslaan (voor cluster trend chart) ──────────────────────────
-    history_file = os.path.join(os.path.dirname(__file__), "data", "leads_history.json")
+    history_file = os.path.join(ROOT_DIR, "data", "leads_history.json")
     history = []
     if os.path.exists(history_file):
         with open(history_file, encoding="utf-8") as f:

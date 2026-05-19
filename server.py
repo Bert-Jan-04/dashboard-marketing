@@ -45,7 +45,7 @@ def load_json(filename):
 # Serveer het dashboard
 @app.route("/")
 def dashboard():
-    return send_from_directory(BASE_DIR, "dashboard.html")
+    return send_from_directory(os.path.join(BASE_DIR, "static"), "dashboard.html")
 
 
 # Alle GSC data
@@ -503,7 +503,7 @@ def signaal():
 @app.route("/api/refresh", methods=["POST"])
 def refresh():
     results = {}
-    scripts = ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "fetch_clarity.py"]
+    scripts = [os.path.join("fetchers", s) for s in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "clarity.py"]]
     for script in scripts:
         path = os.path.join(BASE_DIR, script)
         result = subprocess.run(
@@ -617,7 +617,7 @@ def leads():
 # Leads data verversen (aparte route: funnel API is traag)
 @app.route("/api/refresh-leads", methods=["POST"])
 def refresh_leads():
-    path = os.path.join(BASE_DIR, "leads_week.py")
+    path = os.path.join(BASE_DIR, "fetchers", "leads.py")
     result = subprocess.run(
         [sys.executable, path],
         capture_output=True, text=True, timeout=120
@@ -804,9 +804,9 @@ def _dagelijkse_mail_loop():
             if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
                 print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mail — data vernieuwen...")
                 _sla_snapshot_op()
-                for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py", "fetch_clarity.py"]:
+                for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
                     subprocess.run(
-                        [sys.executable, os.path.join(BASE_DIR, script)],
+                        [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
                         capture_output=True, timeout=120
                     )
                 anomalieën = _detect_anomalies()
@@ -822,13 +822,13 @@ def _dagelijkse_mail_loop():
 
 def _startup_fetch():
     print("[startup] Data ophalen...")
-    for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py", "fetch_clarity.py"]:
+    for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
         result = subprocess.run(
-            [sys.executable, os.path.join(BASE_DIR, script)],
+            [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
             capture_output=True, timeout=120
         )
         status = "ok" if result.returncode == 0 else "fout"
-        print(f"[startup] {script}: {status}")
+        print(f"[startup] fetchers/{script}: {status}")
     print("[startup] Klaar.")
 
 
@@ -1206,10 +1206,10 @@ def snapshot():
 @app.route("/api/fetch-competitors", methods=["POST"])
 def fetch_competitors_endpoint():
     try:
-        import fetch_competitors
         import importlib
-        importlib.reload(fetch_competitors)
-        result = fetch_competitors.main()
+        from fetchers import competitors
+        importlib.reload(competitors)
+        result = competitors.main()
         return jsonify({"ok": True, "dreigingen": len(result.get("dreigingen", [])), "concurrenten": len(result.get("concurrenten", []))})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500

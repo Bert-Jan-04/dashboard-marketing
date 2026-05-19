@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 from datetime import datetime
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CONCURRENTEN = [
     {"naam": "HomeDeal", "domein": "homedeal.nl", "basis": "https://www.homedeal.nl", "start": "https://www.homedeal.nl/dakbedekking/"},
