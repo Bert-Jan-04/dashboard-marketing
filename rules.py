@@ -6,6 +6,7 @@ Importeer vanuit elk script:
     from rules import get_content_pages_from_gsc
 """
 
+import json
 import os
 from urllib.parse import urlparse, quote
 from google.analytics.data_v1beta.types import (
@@ -56,6 +57,29 @@ _FALLBACK_PREFIXES = [
     "/offertevergelijker", "/offertes", "/aanvragen-", "/prijsadvies",
     "/gratis-dakinspectie", "/gratis-offertes", "/kennisbank", "/gids", "/nieuws",
 ]
+
+
+# ── Sitemap-gebaseerde stad/bedrijf filtering ─────────────────────────────────
+
+def get_city_pages_from_sitemap():
+    """Kept for backwards compatibility."""
+    return set()
+
+
+def is_content_page(path, city_pages=None):
+    """
+    True als het pad een content-pagina is.
+    Gebruikt een whitelist van bekende content-prefixen (_FALLBACK_PREFIXES).
+    Stads-, provincie- en bedrijfspagina's vallen hier automatisch buiten.
+    """
+    if not path.endswith("/"):
+        path += "/"
+    if path in EXCLUDED_CONTENT_PAGES:
+        return False
+    for prefix in _FALLBACK_PREFIXES:
+        if path.startswith(prefix):
+            return True
+    return False
 
 
 # ── GSC content-pagina's ophalen ──────────────────────────────────────────────

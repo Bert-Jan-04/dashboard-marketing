@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from rules import is_content_page as _is_content_page
 
 CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), "credentials", "credentials.json")
 SITE_URL  = "https://dakdekkersgids.nl/"
@@ -53,28 +54,9 @@ def parse_rows(rows, dimensions):
 
 def is_company_or_city_page(url):
     path = url.replace("https://dakdekkersgids.nl", "").strip("/")
-    return len([s for s in path.split("/") if s]) >= 2
+    return len([s for s in path.split("/") if s]) >= 2  # bedrijfspagina check (cannibalisatie)
 
 
-def build_city_page_set(pages):
-    """Detecteer stadspagina's: 1-segment paden die ouder zijn van een bedrijfspagina."""
-    city_pages = set()
-    for p in pages:
-        path = strip_domain(p["page"])
-        segs = [s for s in path.split("/") if s]
-        if len(segs) >= 2:
-            city_pages.add("/" + segs[0] + "/")
-    return city_pages
-
-
-def is_content_page(url, city_pages):
-    path = strip_domain(url)
-    segs = [s for s in path.split("/") if s]
-    if len(segs) >= 2:
-        return False
-    if path in city_pages:
-        return False
-    return True
 
 
 def strip_domain(url):
@@ -94,10 +76,9 @@ def main():
     pages_this = parse_rows(query(service, week_start, week_end, ["page"]),  ["page"])
     pages_prev = parse_rows(query(service, prev_start, prev_end, ["page"]),  ["page"])
 
-    # ── Filter stads- en bedrijfspagina's uit top_pages ──────────────────────
-    city_pages         = build_city_page_set(pages_this)
-    content_pages      = [p for p in pages_this if is_content_page(p["page"], city_pages)]
-    content_pages_prev = [p for p in pages_prev if is_content_page(p["page"], city_pages)]
+    # ── Filter: alleen content-pagina's (whitelist op basis van _FALLBACK_PREFIXES) ─
+    content_pages      = [p for p in pages_this if _is_content_page(strip_domain(p["page"]))]
+    content_pages_prev = [p for p in pages_prev if _is_content_page(strip_domain(p["page"]))]
 
     # ── Keywords + rankende pagina (voor filtering + cannibalisatie) ───────────
     kw_page_rows = query(service, week_start, week_end, ["query", "page"], row_limit=5000)
@@ -127,7 +108,7 @@ def main():
     # ── Content-keywords (zonder bedrijfs-/plaatszoekopdrachten) ──────────────
     content_keywords = [
         kw for kw in kw_this
-        if not is_company_or_city_page(kw_top_page.get(kw["query"], "/"))
+        if _is_content_page(strip_domain(kw_top_page.get(kw["query"], "/")))
     ]
 
     # ── Cannibalisatie: meerdere pagina's voor hetzelfde keyword ───────────────

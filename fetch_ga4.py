@@ -11,6 +11,7 @@ from google.analytics.data_v1beta.types import (
 from rules import (
     CREDENTIALS_FILE, PROPERTY_ID,
     conversie_filter, get_content_pages_from_gsc,
+    is_content_page,
 )
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "ga4_data.json")
@@ -156,7 +157,8 @@ def main():
         limit=20
     )
     pages_response = client.run_report(pages_request)
-    top_pages = parse_report(pages_response, ["pagePath"], ["sessions", "activeUsers", "bounceRate"])
+    all_pages = parse_report(pages_response, ["pagePath"], ["sessions", "activeUsers", "bounceRate"])
+    top_pages = [p for p in all_pages if is_content_page(p["pagePath"])]
 
     # Kanalen (organic, direct, etc.)
     channels_response = run_report(
