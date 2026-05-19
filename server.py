@@ -20,6 +20,19 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
+# Zorg dat data-map altijd bestaat (Railway heeft geen persistent FS)
+os.makedirs(DATA_DIR, exist_ok=True)
+
+# Schrijf Google credentials vanuit env var als het bestand er niet is (Railway)
+_creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+if _creds_json:
+    _creds_dir  = os.path.join(BASE_DIR, "credentials")
+    _creds_path = os.path.join(_creds_dir, "credentials.json")
+    os.makedirs(_creds_dir, exist_ok=True)
+    if not os.path.exists(_creds_path):
+        with open(_creds_path, "w", encoding="utf-8") as _f:
+            _f.write(_creds_json)
+
 
 def load_json(filename):
     path = os.path.join(DATA_DIR, filename)
@@ -1213,5 +1226,6 @@ def paginas():
 
 
 if __name__ == "__main__":
-    print("Dashboard draait op http://localhost:5000")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Dashboard draait op http://localhost:{port}")
+    app.run(debug=False, host="0.0.0.0", port=port)
