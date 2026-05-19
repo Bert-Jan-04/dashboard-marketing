@@ -161,9 +161,12 @@ def chat():
     ga4 = load_json("ga4_data.json")
     leads = load_json("leads_week.json")
     competitors = load_json("competitor_data.json")
+    clarity = load_json("clarity_data.json")
+    trends = load_json("trends_data.json")
 
     pagina_context = f"\nDe gebruiker bekijkt op dit moment de '{pagina}'-sectie van het dashboard." if pagina else ""
 
+    # ── GSC ──
     gsc_blok = f"""SEARCH CONSOLE ({gsc.get('period', {}).get('this_week', {}).get('start')} t/m {gsc.get('period', {}).get('this_week', {}).get('end')}):
 - Clicks: {gsc.get('totals', {}).get('clicks')} ({gsc.get('totals', {}).get('clicks_growth')}% t.o.v. vorige week)
 - Impressions: {gsc.get('totals', {}).get('impressions')} ({gsc.get('totals', {}).get('impressions_growth')}%)
@@ -173,6 +176,7 @@ def chat():
 - CTR-kansen (pos ≤10, CTR <3%, imp ≥30): {json.dumps([k for k in gsc.get('top_keywords', []) if k.get('position', 99) <= 10 and k.get('ctr', 99) < 3 and k.get('impressions', 0) >= 30][:10], ensure_ascii=False)}
 - Positie-kansen (pos 4-15, imp ≥30): {json.dumps([k for k in gsc.get('top_keywords', []) if 4 <= k.get('position', 99) <= 15 and k.get('impressions', 0) >= 30][:10], ensure_ascii=False)}"""
 
+    # ── GA4 ──
     ga4_blok = f"""GOOGLE ANALYTICS 4:
 - Sessies: {ga4.get('totals', {}).get('sessions')} ({ga4.get('totals', {}).get('sessions_growth')}% t.o.v. vorige week)
 - Actieve gebruikers: {ga4.get('totals', {}).get('active_users')}
@@ -182,6 +186,7 @@ def chat():
 - Kanalen: {json.dumps(ga4.get('channels', []), ensure_ascii=False)}
 - Top pagina's (GA4): {json.dumps(ga4.get('top_pages', [])[:15], ensure_ascii=False)}"""
 
+    # ── LEADS ──
     cl = leads.get('cluster_attributie', {})
     leads_blok = f"""LEADS & CLUSTERS:
 - Directe leads deze week: {leads.get('directe_leads', {}).get('totaal_deze_week')} (vorige week: {leads.get('directe_leads', {}).get('totaal_vorige_week')})
@@ -190,7 +195,7 @@ def chat():
 - Cluster attributie deze week: {json.dumps(cl.get('deze_week', {}), ensure_ascii=False)}
 - Cluster attributie cumulatief: {json.dumps(cl.get('cumulatief', {}), ensure_ascii=False)}"""
 
-    # Competitor data block
+    # ── CONCURRENTEN ──
     if competitors:
         sam = competitors.get("samenvatting", {})
         dreigingen_top = competitors.get("dreigingen", [])[:15]
@@ -214,6 +219,54 @@ Top dreigingen (keyword → onze positie | impressies | Mangools volume | diffic
 {dreigingen_txt}"""
     else:
         competitor_blok = "CONCURRENTENANALYSE: Nog geen data beschikbaar. Voer eerst een scan uit via /api/fetch-competitors."
+
+    # ── CLARITY ──
+    if clarity and clarity.get("metrics"):
+        m = clarity["metrics"]
+        dead_paginas = "\n".join(f"  - {p['pagina']}: {p['pct']}%" for p in m.get("dead_click_paginas", [])[:5])
+        qb_paginas = "\n".join(f"  - {p['pagina']}: {p['pct']}%" for p in m.get("quickback_paginas", [])[:5])
+        pop_paginas = "\n".join(f"  - {p['pad']}: {p['bezoeken']} bezoeken ({p['aandeel']}%)" for p in m.get("populaire_paginas", [])[:10])
+        clarity_blok = f"""MICROSOFT CLARITY (gedragsdata, periode: {clarity.get('periode','?')}):
+- Sessies: {m.get('sessies',0)} | Unieke gebruikers: {m.get('gebruikers',0)}
+- Pagina's per sessie: {m.get('paginas_per_sessie',0)} | Actieve tijd: {round(m.get('actieve_tijd_sec',0)/60,1)} min | Totale tijd: {round(m.get('totale_tijd_sec',0)/60,1)} min
+- Scroll diepte: {m.get('scroll_diepte',0)}%
+- Dead clicks: {m.get('dead_click_pct',0)}% | Rage clicks: {m.get('rage_click_pct',0)}% | Quick back: {m.get('quickback_pct',0)}% | Script errors: {m.get('script_error_pct',0)}%
+- Apparaten: {json.dumps(m.get('apparaten',[]), ensure_ascii=False)}
+- Verwijzers: {json.dumps(m.get('verwijzers',[])[:8], ensure_ascii=False)}
+- Populaire pagina's:
+{pop_paginas}
+- Dead click pagina's:
+{dead_paginas}
+- Quick back pagina's (bezoekers die snel terug naar Google gingen):
+{qb_paginas}"""
+    else:
+        clarity_blok = "MICROSOFT CLARITY: Nog geen data beschikbaar."
+
+    # ── TRENDS (historisch, laatste 8 weken) ──
+    if trends and isinstance(trends, list):
+        trends_regels = "\n".join(
+            f"- Week {t.get('week','?')} ({t.get('start','')}/{t.get('end','')}): "
+            f"clicks {t.get('gsc',{}).get('clicks','?')} | imp {t.get('gsc',{}).get('impressions','?')} | "
+            f"pos {t.get('gsc',{}).get('position','?')} | sessies {t.get('ga4',{}).get('sessions','?')}"
+            for t in trends[-8:]
+        )
+        trends_blok = f"""HISTORISCHE TRENDS (laatste {len(trends[-8:])} weken):
+{trends_regels}"""
+    else:
+        trends_blok = "HISTORISCHE TRENDS: Nog geen data beschikbaar."
+
+    # ── GECOMBINEERDE DATABROK ──
+    alle_data_blok = f"""{gsc_blok}
+
+{ga4_blok}
+
+{leads_blok}
+
+{competitor_blok}
+
+{clarity_blok}
+
+{trends_blok}"""
 
     extra_instructies = f"\n\nEXTRA INSTRUCTIES VAN DE GEBRUIKER:\n{instructies}" if instructies else ""
     suggestie_instructie = "\n\nSluit je antwoord af met exact 3 korte vervolgvragen, in dit formaat op een nieuwe regel:\n[VRAGEN]\nvraag 1\nvraag 2\nvraag 3\n[/VRAGEN]"
@@ -324,30 +377,30 @@ Geografische focus: heel Nederland, met extra aandacht voor de grote steden (Ams
 
 Een pagina met 100 bezoekers en 5 leadaanvragen is altijd waardevoller dan een pagina met 1.000 bezoekers en 0 aanvragen.{pagina_context}{extra_instructies}
 
-LIVE DATA:
+VOLLEDIGE DASHBOARDDATA:
 
-{gsc_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "leads":
-        systeem = f"""Je bent een conversie- en leadgen-analist voor dakdekkersgids.nl. Je taak: analyseer de GA4 en leads-data en geef concrete actiepunten om meer offerteaanvragen te genereren. Focus op welke pagina's en clusters converteren, welke kanalen presteren, en waar kansen liggen. Wees direct en bondig.{pagina_context}{extra_instructies}
+        systeem = f"""Je bent een conversie- en leadgen-analist voor dakdekkersgids.nl. Je taak: analyseer de data en geef concrete actiepunten om meer offerteaanvragen te genereren. Focus op welke pagina's en clusters converteren, welke kanalen presteren, en waar kansen liggen. Wees direct en bondig.{pagina_context}{extra_instructies}
 
-{ga4_blok}
+VOLLEDIGE DASHBOARDDATA:
 
-{leads_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "content_gap":
-        systeem = f"""Je bent een Content Gap specialist voor dakdekkersgids.nl. Analyseer welke zoekwoorden ontbreken in de huidige content op basis van GSC-data en geef concrete aanbevelingen voor nieuwe pagina's of uitbreidingen die het meeste leadvolume kunnen opleveren.{pagina_context}{extra_instructies}
+        systeem = f"""Je bent een Content Gap specialist voor dakdekkersgids.nl. Analyseer welke zoekwoorden ontbreken in de huidige content en geef concrete aanbevelingen voor nieuwe pagina's of uitbreidingen die het meeste leadvolume kunnen opleveren.{pagina_context}{extra_instructies}
 
-{gsc_blok}{suggestie_instructie}"""
+VOLLEDIGE DASHBOARDDATA:
+
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "anomalie":
-        systeem = f"""Je bent een Anomalie Detective voor dakdekkersgids.nl. Analyseer de data op onverwachte pieken of dalingen in verkeer, CTR of leads. Geef een heldere verklaring en concrete vervolgstappen.{pagina_context}{extra_instructies}
+        systeem = f"""Je bent een Anomalie Detective voor dakdekkersgids.nl. Analyseer de data op onverwachte pieken of dalingen in verkeer, CTR, leads of gebruikersgedrag. Geef een heldere verklaring en concrete vervolgstappen.{pagina_context}{extra_instructies}
 
-{gsc_blok}
+VOLLEDIGE DASHBOARDDATA:
 
-{ga4_blok}
-
-{leads_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "rapportage":
         systeem = f"""Je bent de Hoofd-Rapportage Agent van dakdekkersgids.nl — een niche-leadgensite voor dakdekkers in Nederland. Je beschikt over de gecombineerde expertise van zes specialisten en hebt toegang tot het volledige dashboard.
@@ -381,16 +434,12 @@ Clicks: X (±Y%) | Sessies: X (±Y%) | Leads: X (vorige week: X) | Gem. positie:
 
 Schrijf compact en scanbaar — dit rapport wordt rechtstreeks gemaild. Geen inleiding, geen afsluiting.{pagina_context}{extra_instructies}
 
-VOLLEDIGE DATA:
+VOLLEDIGE DASHBOARDDATA:
 
-{gsc_blok}
-
-{ga4_blok}
-
-{leads_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "concurrentie":
-        systeem = f"""Je bent een Concurrentie-analist voor dakdekkersgids.nl met directe toegang tot sitemap-data van drie directe concurrenten én live GSC-data van onze eigen site.
+        systeem = f"""Je bent een Concurrentie-analist voor dakdekkersgids.nl met directe toegang tot sitemap-data van drie directe concurrenten én live data van onze eigen site.
 
 Je drie concurrenten:
 - homedeal.nl — groot leadgenplatform, brede dakdekker-coverage
@@ -423,25 +472,23 @@ ANTWOORDFORMAAT
 
 Gebruik altijd cijfers. Combineer sitemap-data met GSC-posities. Geen algemene SEO-adviezen.{pagina_context}{extra_instructies}
 
-{competitor_blok}
+VOLLEDIGE DASHBOARDDATA:
 
-{gsc_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     elif tab == "planning":
-        systeem = f"""Je bent een Plannings Agent voor dakdekkersgids.nl. Analyseer seizoenspatronen in de GA4 en GSC-data en adviseer wanneer nieuwe content gepubliceerd moet worden of campagnes geïntensiveerd. Focus op timing voor maximale leadgen-impact.{pagina_context}{extra_instructies}
+        systeem = f"""Je bent een Plannings Agent voor dakdekkersgids.nl. Analyseer seizoenspatronen en historische trenddata en adviseer wanneer nieuwe content gepubliceerd moet worden of campagnes geïntensiveerd. Focus op timing voor maximale leadgen-impact.{pagina_context}{extra_instructies}
 
-{gsc_blok}
+VOLLEDIGE DASHBOARDDATA:
 
-{ga4_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     else:  # strategie
-        systeem = f"""Je bent een strategisch analist voor dakdekkersgids.nl, een leadgen-site voor de dakdekkers-niche. Je combineert SEO, GA4 en leads-data tot een duidelijk weekoverzicht met geprioriteerde actiepunten. Geef maximaal 3-5 concrete aanbevelingen, gerangschikt op impact. Wees bondig en direct — geen achtergrondinfo, direct de analyse.{pagina_context}{extra_instructies}
+        systeem = f"""Je bent een strategisch analist voor dakdekkersgids.nl, een leadgen-site voor de dakdekkers-niche. Je combineert alle beschikbare data tot een duidelijk weekoverzicht met geprioriteerde actiepunten. Geef maximaal 3-5 concrete aanbevelingen, gerangschikt op impact. Wees bondig en direct — geen achtergrondinfo, direct de analyse.{pagina_context}{extra_instructies}
 
-{gsc_blok}
+VOLLEDIGE DASHBOARDDATA:
 
-{ga4_blok}
-
-{leads_blok}{suggestie_instructie}"""
+{alle_data_blok}{suggestie_instructie}"""
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
