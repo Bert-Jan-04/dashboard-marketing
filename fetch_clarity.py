@@ -66,7 +66,7 @@ def main():
         return
 
     end   = date.today()
-    start = end - timedelta(days=7)
+    start = end - timedelta(days=3)
     params = {
         "projectId": PROJECT_ID,
         "startDate": start.strftime("%Y-%m-%d"),
