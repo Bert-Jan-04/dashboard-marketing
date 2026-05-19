@@ -804,7 +804,7 @@ def _dagelijkse_mail_loop():
             if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
                 print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mail — data vernieuwen...")
                 _sla_snapshot_op()
-                for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py"]:
+                for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py", "fetch_clarity.py"]:
                     subprocess.run(
                         [sys.executable, os.path.join(BASE_DIR, script)],
                         capture_output=True, timeout=120
@@ -822,7 +822,7 @@ def _dagelijkse_mail_loop():
 
 def _startup_fetch():
     print("[startup] Data ophalen...")
-    for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py"]:
+    for script in ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "leads_week.py", "fetch_clarity.py"]:
         result = subprocess.run(
             [sys.executable, os.path.join(BASE_DIR, script)],
             capture_output=True, timeout=120
@@ -1217,6 +1217,12 @@ def fetch_competitors_endpoint():
 @app.route("/api/competitor-data")
 def competitor_data():
     return jsonify(load_json("competitor_data.json") or {})
+
+
+# Clarity data
+@app.route("/api/clarity")
+def clarity():
+    return jsonify(load_json("clarity_data.json"))
 
 
 # Trends data

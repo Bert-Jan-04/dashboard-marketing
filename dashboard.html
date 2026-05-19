@@ -175,6 +175,7 @@
     <div class="nav-item" onclick="navigeer('keywords')">◼ Keyword Onderzoek</div>
     <div class="nav-item" onclick="navigeer('clusters')">◼ Clusters</div>
     <div class="nav-item" onclick="navigeer('analyse')">◼ Analyse</div>
+    <div class="nav-item" onclick="navigeer('clarity')">◼ Clarity</div>
 </div>
 
 <div class="main">
@@ -952,11 +953,57 @@
         <button class="chat-attach" onclick="document.getElementById('chat-file-input').click()" title="Bestand uploaden">📎</button>
         <textarea class="chat-input" id="chat-input" placeholder="Stel een vraag..." rows="3"></textarea>
         <button class="chat-send" id="chat-send" onclick="verstuurChat()">↑</button>
+    <!-- CLARITY -->
+    <div class="page" id="page-clarity">
+        <div class="four-col" id="clarity-kpis" style="margin-bottom:20px">
+            <div class="card" style="margin-bottom:0;text-align:center">
+                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Sessies</div>
+                <div id="cl-sessies" style="font-size:36px;font-weight:700;color:#fff">—</div>
+                <div style="font-size:11px;color:#828282;margin-top:4px">afgelopen 7 dagen</div>
+            </div>
+            <div class="card" style="margin-bottom:0;text-align:center">
+                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Scroll diepte</div>
+                <div id="cl-scroll" style="font-size:36px;font-weight:700;color:#a78bfa">—</div>
+                <div style="font-size:11px;color:#828282;margin-top:4px">gemiddeld</div>
+            </div>
+            <div class="card" style="margin-bottom:0;text-align:center">
+                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Dead clicks</div>
+                <div id="cl-dead" style="font-size:36px;font-weight:700;color:#fbbf24">—</div>
+                <div style="font-size:11px;color:#828282;margin-top:4px">% van sessies</div>
+            </div>
+            <div class="card" style="margin-bottom:0;text-align:center">
+                <div style="font-size:11px;color:#828282;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Snel weg</div>
+                <div id="cl-quickback" style="font-size:36px;font-weight:700;color:#f87171">—</div>
+                <div style="font-size:11px;color:#828282;margin-top:4px">quickback %</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Apparaten</div>
+                <div class="card-sub">Sessies per apparaattype</div>
+                <div id="cl-apparaten"></div>
+            </div>
+            <div class="card" style="margin-bottom:0">
+                <div class="card-title">Populaire pagina's</div>
+                <div class="card-sub">Meest bezochte pagina's via Clarity</div>
+                <div id="cl-paginas"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Signalen</div>
+            <div class="card-sub">Frustratie-indicatoren en UX-problemen</div>
+            <div id="cl-signalen"></div>
+        </div>
+    </div>
+
     </div>
 </div>
 
 <script>
 let gscData = null;
+let clarityData = null;
 let ga4Data = null;
 let leadsData = null;
 let leadsHistoryData = null;
@@ -979,7 +1026,7 @@ function navigeer(pagina) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
 
-    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusters', analyse: 'Analyse' };
+    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusters', analyse: 'Analyse', clarity: 'Microsoft Clarity' };
     document.getElementById('page-titel').textContent = titels[pagina];
 
     const navItems = document.querySelectorAll('.nav-item');
@@ -992,6 +1039,7 @@ function navigeer(pagina) {
     if (pagina === 'clusters' && leadsData) { vulClustersPagina(); vulContentPagesStatus(); }
     if (pagina === 'dashboard' && gscData) vulKansen();
     if (pagina === 'analyse') vulAnalysePagina();
+    if (pagina === 'clarity') vulClarityPagina();
 
     haalSignaalOp(pagina);
 }
@@ -1014,13 +1062,14 @@ async function haalSignaalOp(pagina) {
 async function laadData() {
     const nc = { cache: 'no-store' };
     try {
-        const [gscRes, ga4Res, paginasRes, trendsRes] = await Promise.all([
-            fetch('/api/gsc', nc), fetch('/api/ga4', nc), fetch('/api/paginas', nc), fetch('/api/trends', nc)
+        const [gscRes, ga4Res, paginasRes, trendsRes, clarityRes] = await Promise.all([
+            fetch('/api/gsc', nc), fetch('/api/ga4', nc), fetch('/api/paginas', nc), fetch('/api/trends', nc), fetch('/api/clarity', nc)
         ]);
         gscData = await gscRes.json();
         ga4Data = await ga4Res.json();
         allePaginas = await paginasRes.json();
         trendsData = await trendsRes.json();
+        clarityData = await clarityRes.json();
 
         vulKPIs();
         vulTabel();
@@ -2180,6 +2229,70 @@ async function verstuurChat() {
         sendBtn.disabled = false;
         container.scrollTop = container.scrollHeight;
     }
+}
+
+// ── CLARITY ──────────────────────────────────────────────────────────────────
+function vulClarityPagina() {
+    if (!clarityData || !clarityData.metrics) {
+        document.getElementById('cl-signalen').innerHTML =
+            '<p style="color:#828282;font-size:13px">Geen Clarity data — ververs de data eerst.</p>';
+        return;
+    }
+    const m = clarityData.metrics;
+
+    document.getElementById('cl-sessies').textContent   = (m.sessies || 0).toLocaleString('nl-NL');
+    document.getElementById('cl-scroll').textContent    = (m.scroll_diepte || 0) + '%';
+    document.getElementById('cl-dead').textContent      = (m.dead_click_pct || 0) + '%';
+    document.getElementById('cl-quickback').textContent = (m.quickback_pct || 0) + '%';
+
+    // Dead click kleur
+    const deadEl = document.getElementById('cl-dead');
+    deadEl.style.color = m.dead_click_pct > 15 ? '#f87171' : m.dead_click_pct > 8 ? '#fbbf24' : '#02CE80';
+
+    // Apparaten
+    const app = (m.apparaten || []);
+    const totApp = app.reduce((s, d) => s + d.sessies, 0) || 1;
+    document.getElementById('cl-apparaten').innerHTML = app.map(d => `
+        <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+                <span>${d.naam}</span>
+                <span style="color:#828282">${d.sessies} (${Math.round(d.sessies/totApp*100)}%)</span>
+            </div>
+            <div style="background:#2a2a2a;border-radius:4px;height:6px">
+                <div style="background:#02CE80;height:6px;border-radius:4px;width:${Math.round(d.sessies/totApp*100)}%"></div>
+            </div>
+        </div>`).join('');
+
+    // Populaire pagina's
+    document.getElementById('cl-paginas').innerHTML = `
+        <table width="100%" cellpadding="0" cellspacing="0">
+            <thead><tr>
+                <th style="padding:8px 0;font-size:10px;color:#828282;text-align:left;text-transform:uppercase">Pagina</th>
+                <th style="padding:8px 0;font-size:10px;color:#828282;text-align:right;text-transform:uppercase">Bezoeken</th>
+            </tr></thead>
+            <tbody>${(m.populaire_paginas || []).map(p => `
+                <tr>
+                    <td style="padding:7px 0;font-size:12px;color:#02CE80;font-family:monospace">${p.url}</td>
+                    <td style="padding:7px 0;font-size:13px;text-align:right;font-weight:700">${p.bezoeken}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+
+    // Signalen
+    const signalen = [];
+    if (m.dead_click_pct > 10) signalen.push({ kleur: '#f87171', tekst: `<strong>${m.dead_click_pct}%</strong> van sessies heeft dead clicks — gebruikers klikken op elementen die niet klikbaar zijn. Controleer CTA's en links op mobiel.` });
+    if (m.quickback_pct > 5)   signalen.push({ kleur: '#fbbf24', tekst: `<strong>${m.quickback_pct}%</strong> quickback — bezoekers verlaten de pagina snel en komen terug. Mogelijk mismatch tussen zoekintentie en content.` });
+    if (m.scroll_diepte < 40)  signalen.push({ kleur: '#fbbf24', tekst: `Gemiddelde scroll diepte is <strong>${m.scroll_diepte}%</strong> — de helft van de content wordt niet gezien. Zet de belangrijkste CTA hoger op de pagina.` });
+    if (m.rage_click_pct > 1)  signalen.push({ kleur: '#f87171', tekst: `<strong>${m.rage_click_pct}%</strong> rage clicks — bezoekers klikken gefrustreerd herhaaldelijk op dezelfde plek. Kan wijzen op trage of kapotte interactieve elementen.` });
+    if (m.actieve_tijd_sec > 0) signalen.push({ kleur: '#02CE80', tekst: `Gemiddeld <strong>${m.actieve_tijd_sec}s</strong> actieve betrokkenheid per sessie (van ${m.totale_tijd_sec}s totaal).` });
+
+    document.getElementById('cl-signalen').innerHTML = signalen.length
+        ? signalen.map(s => `
+            <div style="padding:10px 14px;border-left:3px solid ${s.kleur};margin-bottom:8px;
+                background:#1e1e1e;border-radius:0 8px 8px 0;font-size:13px;color:#c0c0c0;line-height:1.6">
+                ${s.tekst}
+            </div>`).join('')
+        : '<p style="color:#02CE80;font-size:13px">Geen urgente signalen gevonden.</p>';
 }
 
 // Init
