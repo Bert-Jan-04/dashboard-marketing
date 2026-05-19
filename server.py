@@ -503,7 +503,7 @@ def signaal():
 @app.route("/api/refresh", methods=["POST"])
 def refresh():
     results = {}
-    scripts = ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py"]
+    scripts = ["fetch_gsc.py", "fetch_ga4.py", "fetch_sitemap.py", "fetch_trends.py", "fetch_clarity.py"]
     for script in scripts:
         path = os.path.join(BASE_DIR, script)
         result = subprocess.run(
