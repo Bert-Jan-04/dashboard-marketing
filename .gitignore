@@ -4,22 +4,24 @@ credentials/
 gmail_credentials.json
 gmail_token.json
 
-# Data (gegenereerd, niet in repo — behalve clarity seed en sitemap)
+# Data (gegenereerd door fetchers, niet in repo)
 data/*
-!data/clarity_data.json
-!data/sitemap_urls.json
-
-# One-off scripts (geen onderdeel van de app)
-maak_rapport.py
-maak_verslag.py
+!data/.gitkeep
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 
 # Logs
 *.log
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Editor
 .claude/
+.vscode/
+.idea/
