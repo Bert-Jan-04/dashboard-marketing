@@ -156,20 +156,21 @@
         .chat-signaal { margin: 10px 12px 0; padding: 10px 13px; background: #02CE8008; border: 1px solid #02CE8025; border-radius: 10px; font-size: 12px; color: #02CE8099; line-height: 1.6; display: none; }
 
         /* KANTOOR */
-        .kantoor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 28px; }
-        .kantoor-kaart { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; padding: 28px 20px 22px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
-        .kantoor-kaart:hover { border-color: #02CE8055; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(2,206,128,0.08); }
-        .kantoor-kaart.actief { border-color: #02CE80; background: #02CE8008; box-shadow: 0 0 0 1px #02CE8030, 0 12px 40px rgba(2,206,128,0.12); }
-        .kantoor-avatar { width: 80px; height: 80px; margin: 0 auto 16px; display: block; border-radius: 50%; overflow: hidden; border: 2px solid #2a2a2a; transition: border-color 0.2s; }
+        .kantoor-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; max-width: 560px; }
+        .kantoor-kaart { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; padding: 20px 24px; cursor: pointer; transition: all 0.2s; position: relative; display: flex; align-items: center; gap: 20px; }
+        .kantoor-kaart:hover { border-color: #02CE8055; transform: translateX(4px); box-shadow: 0 8px 30px rgba(2,206,128,0.07); }
+        .kantoor-kaart.actief { border-color: #02CE80; background: #02CE8008; box-shadow: 0 0 0 1px #02CE8030; }
+        .kantoor-avatar { width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 2px solid #2a2a2a; transition: border-color 0.2s; }
         .kantoor-kaart:hover .kantoor-avatar,
         .kantoor-kaart.actief .kantoor-avatar { border-color: #02CE8055; }
-        .kantoor-naam { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .kantoor-tag { font-size: 11px; color: #02CE80; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
-        .kantoor-intro { font-size: 12px; color: #828282; line-height: 1.6; margin-bottom: 18px; }
-        .kantoor-btn { display: inline-block; padding: 8px 20px; background: #02CE8015; border: 1px solid #02CE8040; border-radius: 20px; font-size: 12px; color: #02CE80; font-weight: 600; transition: all 0.15s; }
+        .kantoor-body { flex: 1; min-width: 0; }
+        .kantoor-naam { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+        .kantoor-tag { font-size: 11px; color: #02CE80; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 6px; }
+        .kantoor-intro { font-size: 12px; color: #828282; line-height: 1.5; }
+        .kantoor-btn { flex-shrink: 0; padding: 8px 16px; background: #02CE8015; border: 1px solid #02CE8040; border-radius: 20px; font-size: 12px; color: #02CE80; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
         .kantoor-kaart:hover .kantoor-btn { background: #02CE80; color: #000; }
         .kantoor-kaart.actief .kantoor-btn { background: #02CE80; color: #000; }
-        .kantoor-status { position: absolute; top: 16px; right: 16px; width: 8px; height: 8px; border-radius: 50%; background: #02CE80; box-shadow: 0 0 6px #02CE80; animation: pulse 2s infinite; }
+        .kantoor-status { position: absolute; top: 14px; right: 52px; width: 7px; height: 7px; border-radius: 50%; background: #02CE80; box-shadow: 0 0 6px #02CE80; animation: pulse 2s infinite; }
 
     </style>
 </head>
@@ -184,6 +185,7 @@
     <div class="nav-section">Overzicht</div>
     <div class="nav-item" onclick="navigeer('home')">◼ Home</div>
     <div class="nav-item active" onclick="navigeer('dashboard')">◼ Dashboard</div>
+    <div class="nav-item" onclick="navigeer('kantoor')">◼ Kantoor</div>
     <div class="nav-section">Data bronnen</div>
     <div class="nav-item" onclick="navigeer('searchconsole')">◼ Search Console</div>
     <div class="nav-item" onclick="navigeer('analytics')">◼ Analytics</div>
@@ -193,8 +195,6 @@
     <div class="nav-item" onclick="navigeer('analyse')">◼ Analyse</div>
     <div class="nav-item" onclick="navigeer('clarity')">◼ Clarity</div>
     <div class="nav-item" onclick="navigeer('concurrenten')">◼ Concurrenten</div>
-    <div class="nav-section">AI</div>
-    <div class="nav-item" onclick="navigeer('kantoor')">◼ Kantoor</div>
 </div>
 
 <div class="main">
@@ -2193,10 +2193,12 @@ function renderKantoor() {
         return `<div class="kantoor-kaart ${isActief ? 'actief' : ''}" onclick="openAgent('${key}')">
             <div class="kantoor-status"></div>
             <div class="kantoor-avatar">${a.avatar}</div>
-            <div class="kantoor-naam">${a.naam}</div>
-            <div class="kantoor-tag">${a.tag}</div>
-            <div class="kantoor-intro">${a.intro}</div>
-            <div class="kantoor-btn">${isActief ? 'Actief gesprek ↗' : 'Vraag het mij'}</div>
+            <div class="kantoor-body">
+                <div class="kantoor-naam">${a.naam}</div>
+                <div class="kantoor-tag">${a.tag}</div>
+                <div class="kantoor-intro">${a.intro}</div>
+            </div>
+            <div class="kantoor-btn">${isActief ? 'Actief ↗' : 'Vraag het mij'}</div>
         </div>`;
     }).join('');
 }
