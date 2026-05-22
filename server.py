@@ -1,7 +1,7 @@
+import base64
 import json
 import os
 import re
-import smtplib
 import subprocess
 import sys
 import threading
@@ -16,6 +16,46 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
+
+def _gmail_stuur(aan, onderwerp, html):
+    """Stuur een mail via de Gmail API (werkt op Railway, geen SMTP nodig)."""
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from googleapiclient.discovery import build
+
+    # Token laden: eerst env var (Railway), dan lokaal bestand
+    token_json = os.getenv("GMAIL_TOKEN_JSON")
+    if token_json:
+        token_data = json.loads(token_json)
+    else:
+        token_path = os.path.join(BASE_DIR, "gmail_token.json")
+        with open(token_path, encoding="utf-8") as f:
+            token_data = json.load(f)
+
+    creds = Credentials(
+        token=token_data.get("token"),
+        refresh_token=token_data.get("refresh_token"),
+        token_uri=token_data.get("token_uri", "https://oauth2.googleapis.com/token"),
+        client_id=token_data.get("client_id"),
+        client_secret=token_data.get("client_secret"),
+        scopes=token_data.get("scopes", ["https://www.googleapis.com/auth/gmail.send"]),
+    )
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+
+    afzender = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
+    ontvangers = [a.strip() for a in aan] if isinstance(aan, list) else [aan]
+
+    service = build("gmail", "v1", credentials=creds)
+    for ontvanger in ontvangers:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = onderwerp
+        msg["From"]    = afzender
+        msg["To"]      = ontvanger
+        msg.attach(MIMEText(html, "html"))
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+        service.users().messages().send(userId="me", body={"raw": raw}).execute()
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -783,8 +823,7 @@ def _stuur_alert_mail(anomalieën):
     if not anomalieën:
         return
 
-    gmail_address  = os.getenv("GMAIL_ADDRESS")
-    gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+    gmail_address = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
 
     positief = [a for a in anomalieën if a["niveau"] == "positief"]
     negatief = [a for a in anomalieën if a["niveau"] == "negatief"]
@@ -832,15 +871,9 @@ def _stuur_alert_mail(anomalieën):
     </div>
     </body></html>"""
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"{'⚠️ Alert' if negatief else '📈 Signaal'} dakdekkersgids.nl — {date.today().strftime('%d-%m-%Y')}"
-    msg["From"]    = gmail_address
-    msg["To"]      = "russchenbertjan@gmail.com"
-    msg.attach(MIMEText(html, "html"))
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(gmail_address, gmail_password)
-        smtp.sendmail(gmail_address, "russchenbertjan@gmail.com", msg.as_string())
+    onderwerp = f"{'⚠️ Alert' if negatief else '📈 Signaal'} dakdekkersgids.nl — {date.today().strftime('%d-%m-%Y')}"
+    ontvangers = [a.strip() for a in os.getenv("MAIL_ONTVANGERS", gmail_address).split(",")]
+    _gmail_stuur(ontvangers, onderwerp, html)
     print(f"[scheduler] Alertmail verstuurd — {len(anomalieën)} signalen.")
 
 
@@ -902,14 +935,9 @@ def mail_rapport():
 @app.route("/api/mail-test", methods=["POST"])
 def mail_test():
     try:
-        import smtplib
-        gmail  = os.getenv("GMAIL_ADDRESS")
-        pwd    = os.getenv("GMAIL_APP_PASSWORD")
-        if not gmail or not pwd:
-            return jsonify({"ok": False, "error": "GMAIL_ADDRESS of GMAIL_APP_PASSWORD niet ingesteld"}), 500
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(gmail, pwd)
-        return jsonify({"ok": True, "bericht": f"SMTP login geslaagd voor {gmail}"})
+        gmail = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
+        _gmail_stuur(gmail, "Test dakdekkersgids.nl dashboard", "<p>Gmail API verbinding werkt correct.</p>")
+        return jsonify({"ok": True, "bericht": f"Testmail verstuurd naar {gmail}"})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
@@ -1188,18 +1216,10 @@ def _stuur_mail_intern():
     """
 
     # ── Versturen ──────────────────────────────────────────────────────────
-    gmail_address  = os.getenv("GMAIL_ADDRESS")
-    gmail_password = os.getenv("GMAIL_APP_PASSWORD")
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"Weekrapport dakdekkersgids.nl — {week_s} t/m {week_e}"
-    msg["From"]    = gmail_address
-    msg["To"]      = gmail_address
-    msg.attach(MIMEText(html, "html"))
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(gmail_address, gmail_password)
-        smtp.sendmail(gmail_address, gmail_address, msg.as_string())
+    gmail_address = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
+    ontvangers = [a.strip() for a in os.getenv("MAIL_ONTVANGERS", gmail_address).split(",")]
+    onderwerp  = f"Weekrapport dakdekkersgids.nl — {week_s} t/m {week_e}"
+    _gmail_stuur(ontvangers, onderwerp, html)
 
 
 # Mail AI rapport
@@ -1212,8 +1232,8 @@ def mail_rapport_ai():
         if not tekst:
             return jsonify({"ok": False, "error": "Geen tekst opgegeven"}), 400
 
-        gmail_address  = os.getenv("GMAIL_ADDRESS")
-        gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+        gmail_address = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
+        ontvangers_ai = [a.strip() for a in os.getenv("MAIL_ONTVANGERS", gmail_address).split(",")]
 
         alineas = "".join(
             f"<p style='margin:0 0 10px;color:#333;font-size:14px;line-height:1.7'>{r}</p>"
@@ -1231,16 +1251,7 @@ def mail_rapport_ai():
   </div>
 </div></body></html>"""
 
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = onderwerp
-        msg["From"]    = gmail_address
-        msg["To"]      = "russchenbertjan@gmail.com"
-        msg.attach(MIMEText(html, "html"))
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(gmail_address, gmail_password)
-            smtp.sendmail(gmail_address, "russchenbertjan@gmail.com", msg.as_string())
-
+        _gmail_stuur(ontvangers_ai, onderwerp, html)
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
