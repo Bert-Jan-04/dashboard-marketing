@@ -156,21 +156,40 @@
         .chat-signaal { margin: 10px 12px 0; padding: 10px 13px; background: #02CE8008; border: 1px solid #02CE8025; border-radius: 10px; font-size: 12px; color: #02CE8099; line-height: 1.6; display: none; }
 
         /* KANTOOR */
-        .kantoor-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; max-width: 560px; }
-        .kantoor-kaart { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; padding: 20px 24px; cursor: pointer; transition: all 0.2s; position: relative; display: flex; align-items: center; gap: 20px; }
-        .kantoor-kaart:hover { border-color: #02CE8055; transform: translateX(4px); box-shadow: 0 8px 30px rgba(2,206,128,0.07); }
-        .kantoor-kaart.actief { border-color: #02CE80; background: #02CE8008; box-shadow: 0 0 0 1px #02CE8030; }
-        .kantoor-avatar { width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 2px solid #2a2a2a; transition: border-color 0.2s; }
-        .kantoor-kaart:hover .kantoor-avatar,
-        .kantoor-kaart.actief .kantoor-avatar { border-color: #02CE8055; }
+        .kantoor-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; max-width: 560px; }
+        .kantoor-kaart { height: 96px; perspective: 1200px; transition: height 0.4s cubic-bezier(.4,0,.2,1); }
+        .kantoor-kaart.flipped { height: 280px; }
+        .kantoor-kaart-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.45s cubic-bezier(.4,0,.2,1); }
+        .kantoor-kaart.flipped .kantoor-kaart-inner { transform: rotateY(180deg); }
+        .kantoor-front, .kantoor-back { position: absolute; top: 0; left: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; border: 1px solid #2a2a2a; background: #1a1a1a; overflow: hidden; }
+        .kantoor-front { display: flex; align-items: center; gap: 18px; padding: 18px 22px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+        .kantoor-front:hover { border-color: #02CE8055; box-shadow: 0 4px 20px rgba(2,206,128,0.07); }
+        .kantoor-back { transform: rotateY(180deg); display: flex; flex-direction: column; background: #161616; border-color: #02CE8030; }
+        .kantoor-avatar { width: 56px; height: 56px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 2px solid #2a2a2a; }
         .kantoor-body { flex: 1; min-width: 0; }
-        .kantoor-naam { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-        .kantoor-tag { font-size: 11px; color: #02CE80; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 6px; }
-        .kantoor-intro { font-size: 12px; color: #828282; line-height: 1.5; }
-        .kantoor-btn { flex-shrink: 0; padding: 8px 16px; background: #02CE8015; border: 1px solid #02CE8040; border-radius: 20px; font-size: 12px; color: #02CE80; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
-        .kantoor-kaart:hover .kantoor-btn { background: #02CE80; color: #000; }
-        .kantoor-kaart.actief .kantoor-btn { background: #02CE80; color: #000; }
-        .kantoor-status { position: absolute; top: 14px; right: 52px; width: 7px; height: 7px; border-radius: 50%; background: #02CE80; box-shadow: 0 0 6px #02CE80; animation: pulse 2s infinite; }
+        .kantoor-naam { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+        .kantoor-tag { font-size: 11px; color: #02CE80; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
+        .kantoor-intro { font-size: 12px; color: #828282; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .kantoor-btn { flex-shrink: 0; padding: 7px 14px; background: #02CE8015; border: 1px solid #02CE8040; border-radius: 20px; font-size: 12px; color: #02CE80; font-weight: 600; white-space: nowrap; transition: all 0.15s; }
+        .kantoor-front:hover .kantoor-btn { background: #02CE80; color: #000; }
+        .kantoor-status { position: absolute; top: 11px; right: 48px; width: 7px; height: 7px; border-radius: 50%; background: #02CE80; box-shadow: 0 0 6px #02CE80; animation: pulse 2s infinite; }
+        .kantoor-back-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px 8px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; }
+        .kantoor-back-sluit { background: none; border: none; color: #555; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.15s; }
+        .kantoor-back-sluit:hover { color: #fff; }
+        .kantoor-back-av { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        .kantoor-back-naam { font-size: 13px; font-weight: 600; color: #fff; flex: 1; }
+        .kantoor-chat { flex: 1; overflow-y: auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 7px; min-height: 0; }
+        .kantoor-chat::-webkit-scrollbar { width: 3px; }
+        .kantoor-chat::-webkit-scrollbar-thumb { background: #ffffff15; border-radius: 3px; }
+        .kantoor-msg-user { align-self: flex-end; max-width: 85%; background: #02CE8018; border: 1px solid #02CE8030; border-radius: 10px 10px 2px 10px; padding: 6px 11px; font-size: 12px; color: #e0e0e0; line-height: 1.5; }
+        .kantoor-msg-ai { align-self: flex-start; max-width: 85%; background: #222; border: 1px solid #2e2e2e; border-radius: 10px 10px 10px 2px; padding: 6px 11px; font-size: 12px; color: #b0b0b0; line-height: 1.5; word-break: break-word; }
+        .kantoor-msg-typing { align-self: flex-start; font-size: 12px; color: #555; font-style: italic; padding: 4px 0; }
+        .kantoor-input-row { display: flex; gap: 8px; padding: 8px 14px; border-top: 1px solid #2a2a2a; flex-shrink: 0; }
+        .kantoor-input { flex: 1; background: #121212; border: 1px solid #2e2e2e; border-radius: 8px; padding: 7px 12px; color: #fff; font-size: 12px; outline: none; font-family: inherit; }
+        .kantoor-input:focus { border-color: #ffffff30; }
+        .kantoor-send { background: #02CE80; color: #000; border: none; border-radius: 8px; width: 30px; height: 30px; font-size: 14px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .kantoor-send:hover { background: #00b870; }
+        .kantoor-send:disabled { opacity: 0.3; cursor: not-allowed; }
 
     </style>
 </head>
@@ -2182,34 +2201,105 @@ let chatSuggesties     = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
 let gekozenBestand = null;
 let instructiesPanelOpen = false;
 
+const kantoorChats = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
+
 function renderKantoor() {
     const grid = document.getElementById('kantoor-grid');
     if (!grid) return;
     grid.innerHTML = AGENT_KEYS.map(key => {
         const a = AGENTS[key];
-        const isActief = key === actieveTab;
-        return `<div class="kantoor-kaart ${isActief ? 'actief' : ''}" onclick="openAgent('${key}')">
-            <div class="kantoor-status"></div>
-            <div class="kantoor-avatar">${a.avatar}</div>
-            <div class="kantoor-body">
-                <div class="kantoor-naam">${a.naam}</div>
-                <div class="kantoor-tag">${a.tag}</div>
-                <div class="kantoor-intro">${a.intro}</div>
+        return `<div class="kantoor-kaart" id="kantoor-kaart-${key}">
+            <div class="kantoor-kaart-inner">
+                <div class="kantoor-front" onclick="flipKaart('${key}')">
+                    <div class="kantoor-status"></div>
+                    <div class="kantoor-avatar">${a.avatar}</div>
+                    <div class="kantoor-body">
+                        <div class="kantoor-naam">${a.naam}</div>
+                        <div class="kantoor-tag">${a.tag}</div>
+                        <div class="kantoor-intro">${a.intro}</div>
+                    </div>
+                    <div class="kantoor-btn">Vraag het mij</div>
+                </div>
+                <div class="kantoor-back">
+                    <div class="kantoor-back-header">
+                        <button class="kantoor-back-sluit" onclick="flipKaart('${key}')">←</button>
+                        <div class="kantoor-back-av">${a.avatar}</div>
+                        <div class="kantoor-back-naam">${a.naam}</div>
+                    </div>
+                    <div class="kantoor-chat" id="kantoor-chat-${key}"></div>
+                    <div class="kantoor-input-row">
+                        <input class="kantoor-input" id="kantoor-input-${key}" placeholder="${a.placeholder}"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();stuurKantoorBericht('${key}');}">
+                        <button class="kantoor-send" id="kantoor-send-${key}" onclick="stuurKantoorBericht('${key}')">↑</button>
+                    </div>
+                </div>
             </div>
-            <div class="kantoor-btn">${isActief ? 'Actief ↗' : 'Vraag het mij'}</div>
         </div>`;
     }).join('');
 }
 
+function flipKaart(key) {
+    const el = document.getElementById(`kantoor-kaart-${key}`);
+    if (!el) return;
+    const opening = el.classList.toggle('flipped');
+    if (opening) {
+        setTimeout(() => {
+            const input = document.getElementById(`kantoor-input-${key}`);
+            if (input) input.focus();
+        }, 460);
+    }
+}
+
+function renderKantoorChat(key) {
+    const chatEl = document.getElementById(`kantoor-chat-${key}`);
+    if (!chatEl) return;
+    chatEl.innerHTML = kantoorChats[key].map(m =>
+        `<div class="kantoor-msg-${m.role === 'user' ? 'user' : 'ai'}">${m.content.replace(/\n/g, '<br>')}</div>`
+    ).join('');
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+async function stuurKantoorBericht(key) {
+    const input   = document.getElementById(`kantoor-input-${key}`);
+    const sendBtn = document.getElementById(`kantoor-send-${key}`);
+    const tekst   = input ? input.value.trim() : '';
+    if (!tekst) return;
+    input.value = '';
+    sendBtn.disabled = true;
+    kantoorChats[key].push({ role: 'user', content: tekst });
+    renderKantoorChat(key);
+    const chatEl = document.getElementById(`kantoor-chat-${key}`);
+    const typingEl = document.createElement('div');
+    typingEl.className = 'kantoor-msg-typing';
+    typingEl.textContent = '…';
+    chatEl.appendChild(typingEl);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    try {
+        const res  = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: kantoorChats[key], tab: key })
+        });
+        const data = await res.json();
+        typingEl.remove();
+        const antwoord = (data.antwoord || '').replace(/\[VRAGEN\][\s\S]*?\[\/VRAGEN\]/g, '').trim();
+        kantoorChats[key].push({ role: 'assistant', content: antwoord });
+        renderKantoorChat(key);
+    } catch (e) {
+        typingEl.remove();
+        const err = document.createElement('div');
+        err.className = 'kantoor-msg-ai';
+        err.textContent = 'Er ging iets mis. Probeer opnieuw.';
+        chatEl.appendChild(err);
+    } finally {
+        sendBtn.disabled = false;
+        const inp = document.getElementById(`kantoor-input-${key}`);
+        if (inp) inp.focus();
+    }
+}
+
 function openAgent(key) {
     wisselTab(key);
-    renderKantoor();
-    // Focus chat input zodat je direct kunt typen
-    const input = document.getElementById('chat-input');
-    if (input) {
-        input.focus();
-        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
 }
 
 function renderAgentGrid() {
@@ -2227,7 +2317,6 @@ function renderAgentGrid() {
 function wisselTab(tab) {
     actieveTab = tab;
     renderAgentGrid();
-    renderKantoor();
     document.getElementById('chat-active-label').textContent = AGENTS[tab].naam;
     document.getElementById('chat-input').placeholder = AGENTS[tab].placeholder;
     laadInstructies();
