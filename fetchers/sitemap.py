@@ -8,8 +8,32 @@ DATA_FILE = os.path.join(ROOT_DIR, "data", "sitemap_urls.json")
 SITEMAP_INDEX = "https://dakdekkersgids.nl/sitemap_index.xml"
 NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
-
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
+
+CONTENT_CATEGORIEEN = {
+    "dakbedekking", "dakisolatie", "dakreparatie", "dakrenovatie",
+    "dakreiniging", "dakonderhoud", "daklicht", "daken", "groendak", "dakgoten",
+}
+
+CONTENT_PREFIXEN = (
+    "dak", "groen", "storm", "zink", "lood", "nok", "hemel", "onderdak",
+    "prefab", "schoorsteen", "offert", "kennisbank", "nieuws", "prijsadvies",
+    "locaties", "claim", "bedrijf-aanmelden", "review", "cookiebeleid",
+    "redactie", "btw", "draagkracht", "waarom", "veel-dak", "loodslabben",
+    "dakinspectie", "aanvragen", "bedankt", "gratis",
+)
+
+
+def is_content_pagina(pad):
+    delen = [d for d in pad.strip("/").split("/") if d]
+    if not delen:
+        return True
+    if len(delen) == 1:
+        return delen[0].startswith(CONTENT_PREFIXEN)
+    if len(delen) == 2:
+        return delen[0] in CONTENT_CATEGORIEEN
+    return False
+
 
 def fetch_xml(url):
     res = requests.get(url, headers=HEADERS, timeout=15)
@@ -34,10 +58,10 @@ def main():
         except Exception as e:
             print(f"    Fout: {e}")
 
-    # Sla op als gesorteerde lijst van paden (zonder domein)
     paden = sorted(set(
         url.replace("https://dakdekkersgids.nl", "").rstrip("/") or "/"
         for url in alle_urls
+        if is_content_pagina(url.replace("https://dakdekkersgids.nl", ""))
     ))
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
