@@ -10,14 +10,15 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
 flow = InstalledAppFlow.from_client_secrets_file("gmail_credentials.json", SCOPES)
-creds = flow.run_local_server(port=0)
+print("Browser openen... (als dat niet lukt, kopieer de URL hieronder)")
+creds = flow.run_local_server(port=8090, open_browser=True)
 
 token_data = {
     "token":         creds.token,
     "refresh_token": creds.refresh_token,
     "token_uri":     creds.token_uri,
-    "client_id":     creds.client_info["client_id"],
-    "client_secret": creds.client_info["client_secret"],
+    "client_id":     creds.client_id,
+    "client_secret": creds.client_secret,
     "scopes":        list(creds.scopes),
 }
 

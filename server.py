@@ -694,10 +694,29 @@ MAIL_UUR = 7  # verstuur elke dag om dit uur
 
 SNAPSHOT_FILE = os.path.join(DATA_DIR, "gsc_snapshot.json")
 
-# Drempelwaarden voor alerts
-POSITIE_DREMPEL   = 5     # plaatsen stijging of daling
-CLICKS_DREMPEL    = 0.20  # 20% toe- of afname
-LEADS_DREMPEL     = 0.30  # 30% afname
+# Drempelwaarden voor signalering
+POSITIE_DREMPEL      = 5     # keyword: plaatsen stijging of daling
+GROTE_DALING_DREMPEL = 10    # pagina: grote daling (apart gesignaleerd)
+CLICKS_DREMPEL       = 0.20  # 20% toe- of afname
+LEADS_DREMPEL        = 0.30  # 30% afname
+
+# Formaat env var: "Naam=email,Naam2=email2,Naam3" (email optioneel)
+_mw_raw = os.getenv("MEDEWERKERS", "Sander,Lennard,Bert-Jan=bert-jan@daadkracht-marketing.nl")
+MEDEWERKERS: dict[str, str | None] = {}
+for _mw in _mw_raw.split(","):
+    _mw = _mw.strip()
+    if "=" in _mw:
+        _naam, _email = _mw.split("=", 1)
+        MEDEWERKERS[_naam.strip()] = _email.strip()
+    elif _mw:
+        MEDEWERKERS[_mw] = None
+
+# Clarity drempelwaarden (statisch — geen snapshot nodig)
+DEAD_CLICK_DREMPEL  = 15.0  # % sessies met dead clicks
+RAGE_CLICK_DREMPEL  = 0.5   # % sessies met rage clicks
+QUICKBACK_DREMPEL   = 8.0   # % sessies met quick back
+SCRIPT_ERROR_DREMPEL = 2.0  # % sessies met script errors
+SCROLL_DIEPTE_MIN   = 30.0  # % scroll diepte (onder = te laag)
 
 
 def _sla_snapshot_op():
@@ -712,106 +731,188 @@ def _sla_snapshot_op():
         json.dump(snapshot, f, ensure_ascii=False, indent=2)
 
 
-def _detect_anomalies():
+def _detect_signalen():
+    """Detecteer signaleringen: top-10 entries, grote dalingen, click-wijzigingen, leads."""
     if not os.path.exists(SNAPSHOT_FILE):
         return []
 
-    snap    = load_json("gsc_snapshot.json")
-    gsc     = load_json("gsc_data.json")
-    leads   = load_json("leads_week.json")
-    anomalieën = []
+    snap   = load_json("gsc_snapshot.json")
+    gsc    = load_json("gsc_data.json")
+    leads  = load_json("leads_week.json")
+    signalen = []
 
     snap_kw = snap.get("keywords", {})
     snap_pg = snap.get("paginas", {})
 
-    # Keyword positieveranderingen
+    # Keyword positieveranderingen (≥5 plaatsen)
     for kw in gsc.get("top_keywords", []):
-        q     = kw["query"]
-        oud   = snap_kw.get(q)
+        q   = kw["query"]
+        oud = snap_kw.get(q)
         if not oud:
             continue
         delta = oud["position"] - kw["position"]  # positief = gestegen
         if abs(delta) >= POSITIE_DREMPEL:
             richting = "gestegen" if delta > 0 else "gedaald"
-            anomalieën.append({
-                "type":    "positie",
-                "niveau":  "positief" if delta > 0 else "negatief",
-                "tekst":   f"Keyword <strong>'{q}'</strong> is {abs(delta):.0f} plekken {richting}: "
-                           f"positie {oud['position']:.0f} → {kw['position']:.0f} "
-                           f"({kw['impressions']} impressies, {kw['clicks']} clicks)"
+            signalen.append({
+                "type":   "keyword_positie",
+                "niveau": "positief" if delta > 0 else "negatief",
+                "tekst":  f"Keyword <strong>'{q}'</strong> is {abs(delta):.0f} plekken {richting}: "
+                          f"positie {oud['position']:.0f} → {kw['position']:.0f} "
+                          f"({kw['impressions']} impressies, {kw['clicks']} clicks)"
             })
 
-    # Pagina positieveranderingen
+    # Pagina: nieuw in top 10
     for pg in gsc.get("top_pages", []):
-        url  = pg["page"]
-        oud  = snap_pg.get(url)
+        url = pg["page"]
+        oud = snap_pg.get(url)
         if not oud:
             continue
-        delta = oud["position"] - pg["position"]
-        if abs(delta) >= POSITIE_DREMPEL:
-            pad       = url.replace("https://dakdekkersgids.nl", "") or "/"
-            richting  = "gestegen" if delta > 0 else "gedaald"
-            anomalieën.append({
-                "type":   "pagina",
-                "niveau": "positief" if delta > 0 else "negatief",
-                "tekst":  f"Pagina <strong>{pad}</strong> is {abs(delta):.0f} plekken {richting}: "
+        if oud["position"] > 10 and pg["position"] <= 10:
+            pad = url.replace("https://dakdekkersgids.nl", "") or "/"
+            signalen.append({
+                "type":   "top10_entry",
+                "niveau": "positief",
+                "tekst":  f"Pagina <strong>{pad}</strong> staat nu in de <strong>top 10</strong>! "
+                          f"Positie {oud['position']:.0f} → {pg['position']:.0f} "
+                          f"({pg['clicks']} clicks, {pg['impressions']} impressies)"
+            })
+
+    # Pagina: ≥10 posities gedaald
+    for pg in gsc.get("top_pages", []):
+        url = pg["page"]
+        oud = snap_pg.get(url)
+        if not oud:
+            continue
+        daling = pg["position"] - oud["position"]  # positief = gedaald
+        if daling >= GROTE_DALING_DREMPEL:
+            pad = url.replace("https://dakdekkersgids.nl", "") or "/"
+            signalen.append({
+                "type":   "grote_daling",
+                "niveau": "negatief",
+                "tekst":  f"Pagina <strong>{pad}</strong> is {daling:.0f} posities gedaald: "
                           f"positie {oud['position']:.0f} → {pg['position']:.0f} "
                           f"({pg['clicks']} clicks)"
             })
 
-    # Clicks totaal
+    # Totale clicks (±20%)
     oud_clicks = snap.get("clicks", 0)
     nw_clicks  = gsc.get("totals", {}).get("clicks", 0)
     if oud_clicks > 0:
         delta_pct = (nw_clicks - oud_clicks) / oud_clicks
         if abs(delta_pct) >= CLICKS_DREMPEL:
             richting = "gestegen" if delta_pct > 0 else "gedaald"
-            anomalieën.append({
-                "type":   "clicks",
+            signalen.append({
+                "type":   "clicks_totaal",
                 "niveau": "positief" if delta_pct > 0 else "negatief",
                 "tekst":  f"Totale clicks zijn {abs(delta_pct)*100:.0f}% {richting}: "
                           f"{oud_clicks} → {nw_clicks}"
             })
 
-    # Leads
-    dl         = leads.get("directe_leads", {})
-    oud_leads  = dl.get("totaal_vorige_week", 0)
-    nw_leads   = dl.get("totaal_deze_week", 0)
+    # Leads daling (≥30%)
+    dl        = leads.get("directe_leads", {})
+    oud_leads = dl.get("totaal_vorige_week", 0)
+    nw_leads  = dl.get("totaal_deze_week", 0)
     if oud_leads > 0:
         delta_pct = (nw_leads - oud_leads) / oud_leads
         if delta_pct <= -LEADS_DREMPEL:
-            anomalieën.append({
-                "type":   "leads",
+            signalen.append({
+                "type":   "leads_daling",
                 "niveau": "negatief",
                 "tekst":  f"Leads zijn {abs(delta_pct)*100:.0f}% gedaald: "
                           f"{oud_leads} → {nw_leads} deze week"
             })
 
-    return anomalieën
+    # Clarity UX-signalen (vaste drempelwaarden)
+    clarity = load_json("clarity_data.json")
+    if clarity and isinstance(clarity.get("metrics"), dict):
+        m = clarity["metrics"]
+        dead = m.get("dead_click_pct", 0)
+        rage = m.get("rage_click_pct", 0)
+        qb   = m.get("quickback_pct", 0)
+        err  = m.get("script_error_pct", 0)
+        scroll = m.get("scroll_diepte", 100)
+
+        if dead >= DEAD_CLICK_DREMPEL:
+            signalen.append({
+                "type":   "dead_clicks",
+                "niveau": "negatief",
+                "tekst":  f"Hoge dead-click rate: <strong>{dead}%</strong> van de sessies klikt op elementen die niets doen "
+                          f"({m.get('dead_click_paginas', 0)} pagina's betrokken). Controleer CTA's en linkjes."
+            })
+        if rage >= RAGE_CLICK_DREMPEL:
+            signalen.append({
+                "type":   "rage_clicks",
+                "niveau": "negatief",
+                "tekst":  f"Hoge rage-click rate: <strong>{rage}%</strong> — gebruikers zijn gefrustreerd. "
+                          f"Waarschijnlijk een kapot element of trage laadtijd."
+            })
+        if qb >= QUICKBACK_DREMPEL:
+            signalen.append({
+                "type":   "quickback",
+                "niveau": "negatief",
+                "tekst":  f"Hoge quick-back rate: <strong>{qb}%</strong> van bezoekers keert direct terug naar Google "
+                          f"({m.get('quickback_paginas', 0)} pagina's). Content sluit mogelijk niet aan bij zoekintentie."
+            })
+        if err >= SCRIPT_ERROR_DREMPEL:
+            signalen.append({
+                "type":   "script_errors",
+                "niveau": "negatief",
+                "tekst":  f"Script errors op <strong>{err}%</strong> van de sessies — waarschijnlijk een JavaScript-fout die conversies blokkeert."
+            })
+        if scroll < SCROLL_DIEPTE_MIN:
+            signalen.append({
+                "type":   "lage_scroll",
+                "niveau": "negatief",
+                "tekst":  f"Lage gemiddelde scroll diepte: <strong>{scroll}%</strong>. "
+                          f"Bezoekers zien de CTA of het formulier mogelijk niet."
+            })
+
+    return signalen
 
 
-def _stuur_alert_mail(anomalieën):
-    if not anomalieën:
+def _detect_anomalies():
+    return _detect_signalen()
+
+
+def _stuur_signalering_mail(signalen):
+    if not signalen:
         return
 
     gmail_address = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
 
-    positief = [a for a in anomalieën if a["niveau"] == "positief"]
-    negatief = [a for a in anomalieën if a["niveau"] == "negatief"]
+    positief = [s for s in signalen if s["niveau"] == "positief"]
+    negatief = [s for s in signalen if s["niveau"] == "negatief"]
+
+    type_label = {
+        "top10_entry":    "Nieuw in top 10",
+        "grote_daling":   "Grote daling",
+        "keyword_positie":"Keyword positie",
+        "clicks_totaal":  "Clicks",
+        "leads_daling":   "Leads",
+        "dead_clicks":    "Dead clicks",
+        "rage_clicks":    "Rage clicks",
+        "quickback":      "Quick back",
+        "script_errors":  "Script errors",
+        "lage_scroll":    "Lage scroll diepte",
+    }
 
     def rijen(items, kleur):
         return "".join(
             f'<div style="padding:10px 14px;border-left:3px solid {kleur};'
             f'margin-bottom:8px;background:#1e1e1e;border-radius:0 8px 8px 0;'
-            f'font-size:13px;color:#c0c0c0;line-height:1.6">{a["tekst"]}</div>'
-            for a in items
+            f'font-size:13px;color:#c0c0c0;line-height:1.6">'
+            f'<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;'
+            f'color:{kleur};display:block;margin-bottom:4px">'
+            f'{type_label.get(s["type"], s["type"])}</span>'
+            f'{s["tekst"]}</div>'
+            for s in items
         )
 
     secties = ""
     if negatief:
         secties += f"""
         <h2 style="font-size:12px;color:#f87171;text-transform:uppercase;
-            letter-spacing:1px;margin:0 0 10px">Aandachtspunten</h2>
+            letter-spacing:1px;margin:0 0 10px">Let op</h2>
         {rijen(negatief, '#f87171')}
         <div style="margin-bottom:20px"></div>"""
     if positief:
@@ -820,32 +921,201 @@ def _stuur_alert_mail(anomalieën):
             letter-spacing:1px;margin:0 0 10px">Positieve bewegingen</h2>
         {rijen(positief, '#02CE80')}"""
 
+    rand_kleur = '#f87171' if negatief else '#02CE80'
+    titel = "Let op — actie vereist" if negatief else "Positief nieuws"
     html = f"""
-    <html><body style="margin:0;padding:0;background:#0e0e0e;
-        font-family:'Segoe UI',Arial,sans-serif">
-    <div style="max-width:600px;margin:32px auto;background:#1a1a1a;
-        border-radius:18px;overflow:hidden;color:#fff">
-      <div style="background:#1a1a1a;border-bottom:2px solid {'#f87171' if negatief else '#02CE80'};
-          padding:24px 32px">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;
-            letter-spacing:1px;margin-bottom:6px">dakdekkersgids.nl — signalering</div>
-        <h1 style="margin:0;font-size:20px;font-weight:700;color:#fff">
-          {"⚠️ Aandacht vereist" if negatief else "📈 Positieve beweging"}</h1>
+    <html><body style="margin:0;padding:0;background:#0e0e0e;font-family:'Segoe UI',Arial,sans-serif">
+    <div style="max-width:600px;margin:32px auto;background:#1a1a1a;border-radius:18px;overflow:hidden;color:#fff">
+      <div style="background:#1a1a1a;border-bottom:2px solid {rand_kleur};padding:24px 32px">
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">
+          dakdekkersgids.nl — signalering</div>
+        <h1 style="margin:0;font-size:20px;font-weight:700;color:#fff">{titel}</h1>
         <p style="margin:6px 0 0;font-size:12px;color:#555">
-          {date.today().strftime('%d-%m-%Y')} — {len(anomalieën)} signaal{'en' if len(anomalieën) != 1 else ''} gedetecteerd</p>
+          {date.today().strftime('%d-%m-%Y')} — {len(signalen)} signaal{'en' if len(signalen) != 1 else ''} gedetecteerd</p>
       </div>
       <div style="padding:28px 32px">{secties}</div>
-      <div style="padding:14px 32px;border-top:1px solid #2a2a2a;
-          font-size:11px;color:#444;text-align:center">
-        Automatisch signaal van dakdekkersgids.nl dashboard
+      <div style="padding:14px 32px;border-top:1px solid #2a2a2a;font-size:11px;color:#444;text-align:center">
+        Automatisch signaal — dakdekkersgids.nl dashboard
       </div>
     </div>
     </body></html>"""
 
-    onderwerp = f"{'⚠️ Alert' if negatief else '📈 Signaal'} dakdekkersgids.nl — {date.today().strftime('%d-%m-%Y')}"
+    onderwerp = f"{'⚠️ Signalering' if negatief else '📈 Signaal'} dakdekkersgids.nl — {date.today().strftime('%d-%m-%Y')}"
     ontvangers = [a.strip() for a in os.getenv("MAIL_ONTVANGERS", gmail_address).split(",")]
     _gmail_stuur(ontvangers, onderwerp, html)
-    print(f"[scheduler] Alertmail verstuurd — {len(anomalieën)} signalen.")
+    print(f"[scheduler] Signaleringsmail verstuurd — {len(signalen)} signalen.")
+
+
+def _stuur_alert_mail(anomalieën):
+    _stuur_signalering_mail(anomalieën)
+
+
+def _genereer_taken(gsc, ga4, leads_data):
+    """Vraag OpenAI om 3 concrete, geprioriteerde taken te genereren."""
+    kw_all = gsc.get("content_keywords") or gsc.get("top_keywords", [])
+    ctr_kansen = [k for k in kw_all if k.get("position", 99) <= 10 and k.get("ctr", 99) < 3.0 and k.get("impressions", 0) >= 30][:4]
+    pos_kansen = [k for k in kw_all if 4 <= k.get("position", 99) <= 15 and k.get("impressions", 0) >= 30][:4]
+    dl = leads_data.get("directe_leads", {})
+
+    clarity = load_json("clarity_data.json")
+    clarity_blok = ""
+    if clarity and isinstance(clarity.get("metrics"), dict):
+        m = clarity["metrics"]
+        pop = [p.get("url", "") for p in m.get("populaire_paginas", [])[:5]]
+        apparaten = {a["naam"]: a["sessies"] for a in m.get("apparaten", [])}
+        clarity_blok = f"""
+- Clarity gedragsdata:
+  - Dead clicks: {m.get('dead_click_pct', 0)}% ({m.get('dead_click_paginas', 0)} pagina's)
+  - Rage clicks: {m.get('rage_click_pct', 0)}%
+  - Quick back: {m.get('quickback_pct', 0)}% ({m.get('quickback_paginas', 0)} pagina's)
+  - Scroll diepte: {m.get('scroll_diepte', 0)}%
+  - Actieve tijd: {m.get('actieve_tijd_sec', 0)}s
+  - Apparaten: {json.dumps(apparaten, ensure_ascii=False)}
+  - Populaire pagina's in Clarity: {pop}"""
+
+    prompt = f"""Je bent een SEO- en CRO-strateeg voor dakdekkersgids.nl (leadgen-site dakdekkers Nederland).
+
+Data van vandaag:
+- Clicks: {gsc.get('totals', {}).get('clicks')} ({gsc.get('totals', {}).get('clicks_growth')}% t.o.v. vorige week)
+- Sessies: {ga4.get('totals', {}).get('sessions')} ({ga4.get('totals', {}).get('sessions_growth')}%)
+- Leads deze week: {dl.get('totaal_deze_week')} (vorige week: {dl.get('totaal_vorige_week')})
+- CTR-kansen (top 10, CTR < 3%): {json.dumps(ctr_kansen, ensure_ascii=False)}
+- Positie-kansen (pos 4-15): {json.dumps(pos_kansen, ensure_ascii=False)}
+- Top pagina's: {json.dumps(gsc.get('top_pages', [])[:5], ensure_ascii=False)}{clarity_blok}
+
+Beschikbare medewerkers: {', '.join(MEDEWERKERS)}
+
+Genereer precies 3 concrete uitvoerbare taken voor vandaag. Gebruik ook de Clarity gedragsdata als dat relevant is (bijv. lage scroll diepte = formulier niet zichtbaar, hoge dead clicks = gebroken elementen, mobiel dominant = mobile-first denken). Prioriteer op leadgen-impact.
+
+Geef antwoord als JSON:
+{{"taken": [
+  {{"taak": "korte taaktitel (max 8 woorden)", "toelichting": "1-2 zinnen met concrete data erbij", "medewerker": "naam uit lijst", "prioriteit": "hoog|middel|laag"}},
+  {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}},
+  {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}}
+]}}
+
+Regels: elke taak direct uitvoerbaar, gebruik exacte keywords/pagina's of Clarity-inzichten, wijs elke taak aan een andere medewerker toe."""
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=700
+    )
+    raw = response.choices[0].message.content
+    try:
+        data = json.loads(raw)
+        return data.get("taken", data) if isinstance(data, dict) else data
+    except (json.JSONDecodeError, TypeError):
+        match = re.search(r'\[.*\]', raw, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group())
+            except json.JSONDecodeError:
+                pass
+    return []
+
+
+def _stuur_takenmail():
+    """Stuur dagelijkse takenmail met 3 AI-gegenereerde actiepunten."""
+    gsc        = load_json("gsc_data.json")
+    ga4        = load_json("ga4_data.json")
+    leads_data = load_json("leads_week.json")
+
+    taken = _genereer_taken(gsc, ga4, leads_data)
+
+    prio_kleur = {"hoog": "#f87171", "middel": "#fbbf24", "laag": "#02CE80"}
+
+    taken_html = ""
+    for t in taken[:3]:
+        prio  = t.get("prioriteit", "middel").lower()
+        kleur = prio_kleur.get(prio, "#fbbf24")
+        mw    = t.get("medewerker", "?")
+        taken_html += f"""
+        <div style="background:#1e1e1e;border-radius:12px;padding:18px 20px;margin-bottom:12px;border-left:3px solid {kleur}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div style="font-size:15px;font-weight:700;color:#fff;line-height:1.3;flex:1">{t.get('taak', '')}</div>
+            <span style="font-size:10px;padding:3px 8px;border-radius:20px;background:{kleur}22;color:{kleur};
+              border:1px solid {kleur}44;text-transform:uppercase;letter-spacing:0.5px;
+              flex-shrink:0;margin-left:10px">{prio}</span>
+          </div>
+          <p style="margin:0 0 14px;font-size:13px;color:#a0a0a0;line-height:1.6">{t.get('toelichting', '')}</p>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;background:#02CE8022;border:1px solid #02CE8055;border-radius:50%;
+              text-align:center;line-height:28px;color:#02CE80;font-size:12px;font-weight:700">{mw[0].upper()}</div>
+            <span style="font-size:13px;color:#02CE80;font-weight:600">{mw}</span>
+          </div>
+        </div>"""
+
+    if not taken_html:
+        taken_html = '<p style="color:#828282;font-size:13px">Geen taken gegenereerd — ververs de data eerst.</p>'
+
+    clicks         = gsc.get("totals", {}).get("clicks", 0)
+    clicks_growth  = gsc.get("totals", {}).get("clicks_growth", 0)
+    sessies        = ga4.get("totals", {}).get("sessions", 0)
+    leads_nu       = leads_data.get("directe_leads", {}).get("totaal_deze_week", 0)
+    groei_kleur_fn = lambda g: "#02CE80" if (g or 0) >= 0 else "#f87171"
+    groei_teken_fn = lambda g: f"+{g}" if (g or 0) >= 0 else str(g)
+
+    dag_nl = ["maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag","zondag"]
+    mnd_nl = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"]
+    nu     = date.today()
+    datum_str = f"{dag_nl[nu.weekday()]} {nu.day} {mnd_nl[nu.month-1]} {nu.year}"
+
+    html = f"""
+    <html><body style="margin:0;padding:0;background:#0e0e0e;font-family:'Segoe UI',Arial,sans-serif">
+    <div style="max-width:600px;margin:32px auto;background:#1a1a1a;border-radius:18px;overflow:hidden;color:#fff">
+
+      <div style="background:#1a1a1a;border-bottom:2px solid #02CE80;padding:24px 32px">
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">dakdekkersgids.nl</div>
+        <h1 style="margin:0;font-size:20px;font-weight:700;color:#fff">Taken voor vandaag</h1>
+        <p style="margin:6px 0 0;font-size:12px;color:#555">{datum_str}</p>
+      </div>
+
+      <div style="padding:28px 32px">
+        {taken_html}
+
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2a2a">
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Snel overzicht</div>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding:0 4px 0 0">
+                <div style="background:#2a2a2a;border-radius:8px;padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:#4285f4">{clicks}</div>
+                  <div style="font-size:10px;color:#555;margin-top:3px">Clicks&nbsp;
+                    <span style="color:{groei_kleur_fn(clicks_growth)}">{groei_teken_fn(clicks_growth)}%</span></div>
+                </div>
+              </td>
+              <td style="padding:0 4px">
+                <div style="background:#2a2a2a;border-radius:8px;padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:#a78bfa">{sessies:,}</div>
+                  <div style="font-size:10px;color:#555;margin-top:3px">Sessies</div>
+                </div>
+              </td>
+              <td style="padding:0 0 0 4px">
+                <div style="background:#2a2a2a;border-radius:8px;padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:#02CE80">{leads_nu}</div>
+                  <div style="font-size:10px;color:#555;margin-top:3px">Leads deze week</div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="padding:14px 32px;border-top:1px solid #2a2a2a;font-size:11px;color:#444;text-align:center">
+        Dagelijkse taken — dakdekkersgids.nl dashboard
+      </div>
+    </div>
+    </body></html>"""
+
+    gmail_address  = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
+    basis          = [a.strip() for a in os.getenv("MAIL_ONTVANGERS", gmail_address).split(",")]
+    mw_emails      = [e for e in MEDEWERKERS.values() if e]
+    ontvangers     = list(dict.fromkeys(basis + mw_emails))  # dedupliceer, behoud volgorde
+    onderwerp      = f"Taken voor {datum_str} — dakdekkersgids.nl"
+    _gmail_stuur(ontvangers, onderwerp, html)
+    print(f"[scheduler] Takenmail verstuurd naar {len(ontvangers)} ontvangers — {len(taken)} taken.")
 
 
 def _dagelijkse_mail_loop():
@@ -855,19 +1125,21 @@ def _dagelijkse_mail_loop():
             nu      = datetime.now()
             vandaag = nu.date()
             if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
-                print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mail — data vernieuwen...")
+                print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mails — data vernieuwen...")
                 _sla_snapshot_op()
                 for script in ["gsc.py", "ga4.py", "trends.py", "leads.py", "clarity.py"]:
                     subprocess.run(
                         [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
                         capture_output=True, timeout=120
                     )
-                anomalieën = _detect_anomalies()
-                if anomalieën:
-                    _stuur_alert_mail(anomalieën)
-                _stuur_mail_intern()
+                # 1. Takenmail — altijd
+                _stuur_takenmail()
+                # 2. Signaleringsmail — alleen bij detecties
+                signalen = _detect_signalen()
+                if signalen:
+                    _stuur_signalering_mail(signalen)
                 _dagelijks_mail_datum = vandaag
-                print(f"[scheduler] Dagelijkse mail verstuurd.")
+                print(f"[scheduler] Dagelijkse mails verstuurd.")
         except Exception as e:
             import traceback
             print(f"[scheduler] Fout: {e}")
@@ -916,12 +1188,35 @@ if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     threading.Thread(target=_startup_fetch, daemon=True).start()
 
 
-# Mail rapport
+# Mail rapport (volledig weekrapport, handmatig)
 @app.route("/api/mail-rapport", methods=["POST"])
 def mail_rapport():
     try:
         _stuur_mail_intern()
         return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# Takenmail handmatig triggeren (voor testen)
+@app.route("/api/mail-taken", methods=["POST"])
+def mail_taken():
+    try:
+        _stuur_takenmail()
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# Signaleringsmail handmatig triggeren (voor testen)
+@app.route("/api/mail-signalering", methods=["POST"])
+def mail_signalering():
+    try:
+        signalen = _detect_signalen()
+        if signalen:
+            _stuur_signalering_mail(signalen)
+            return jsonify({"ok": True, "signalen": len(signalen), "details": [s["tekst"] for s in signalen]})
+        return jsonify({"ok": True, "signalen": 0, "bericht": "Geen signalen gedetecteerd."})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
