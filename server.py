@@ -187,6 +187,7 @@ def chat():
     tab = body.get("tab", "strategie")
     pagina = body.get("pagina", "")
     instructies = body.get("instructies", "").strip()
+    kantoor_modus = body.get("kantoor", False)
 
     if not history or history[-1].get("role") != "user":
         return jsonify({"error": "Geen vraag opgegeven"}), 400
@@ -503,11 +504,36 @@ VOLLEDIGE DASHBOARDDATA:
 
 {alle_data_blok}{suggestie_instructie}"""
 
+    if kantoor_modus:
+        agent_rol = {
+            "seo":         "SEO-specialist",
+            "leads":       "Conversie-specialist",
+            "content_gap": "Content-strateeg",
+            "anomalie":    "Anomalie-detective",
+            "rapportage":  "Rapportage-specialist",
+            "concurrentie":"Concurrentie-analist",
+            "planning":    "Plannings-specialist",
+        }.get(tab, "SEO-specialist")
+
+        systeem = f"""Je bent een {agent_rol} voor dakdekkersgids.nl. Je geeft uitsluitend korte, directe adviezen op basis van de dashboarddata hieronder.
+
+STRENGE REGELS — overtreed deze niet:
+1. Maximaal 3 adviezen per antwoord. Nooit meer.
+2. Elk advies maximaal 2 zinnen: zin 1 = exacte actie, zin 2 = verwacht resultaat.
+3. Noem altijd een specifieke pagina-URL of keyword uit de data. Nooit algemeen.
+4. Verboden woorden: "zou kunnen", "misschien", "overweeg", "analyseer", "het is interessant", "je kunt kijken naar", "het lijkt erop".
+5. Begin direct met het eerste advies. Geen inleiding, geen afsluiting, geen samenvatting.
+6. Formaat per advies: **[pagina of keyword]** — [actie] — [verwacht effect in cijfers of richting].
+
+DASHBOARDDATA:
+{alle_data_blok}"""
+
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    max_tok = 400 if kantoor_modus else 1200
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "system", "content": systeem}] + history,
-        max_tokens=1200
+        max_tokens=max_tok
     )
 
     raw = response.choices[0].message.content
