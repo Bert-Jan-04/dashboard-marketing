@@ -1097,8 +1097,6 @@
 
     </div>
 
-</div>
-
     <!-- KANTOOR -->
     <div class="page" id="page-kantoor">
         <div class="header">
@@ -2206,9 +2204,12 @@ function renderKantoor() {
 function openAgent(key) {
     wisselTab(key);
     renderKantoor();
-    // scroll chat sidebar naar boven zodat de actieve agent zichtbaar is
-    const msgs = document.getElementById('chat-messages');
-    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    // Focus chat input zodat je direct kunt typen
+    const input = document.getElementById('chat-input');
+    if (input) {
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function renderAgentGrid() {
