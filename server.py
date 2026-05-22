@@ -25,11 +25,16 @@ def _gmail_stuur(aan, onderwerp, html):
     from googleapiclient.discovery import build
 
     # Token laden: eerst env var (Railway), dan lokaal bestand
-    token_json = os.getenv("GMAIL_TOKEN_JSON")
+    token_json = os.getenv("GMAIL_TOKEN_JSON", "").strip()
     if token_json:
         token_data = json.loads(token_json)
     else:
         token_path = os.path.join(BASE_DIR, "gmail_token.json")
+        if not os.path.exists(token_path):
+            raise FileNotFoundError(
+                "Gmail niet geconfigureerd: stel GMAIL_TOKEN_JSON in als Railway env var "
+                "of voer setup_gmail_token.py uit om gmail_token.json aan te maken."
+            )
         with open(token_path, encoding="utf-8") as f:
             token_data = json.load(f)
 
@@ -904,15 +909,23 @@ def _dagelijkse_mail_loop():
         time.sleep(300)  # check elke 5 minuten
 
 
+_fetch_status = {}
+
 def _startup_fetch():
+    global _fetch_status
     print("[startup] Data ophalen...")
     for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
         result = subprocess.run(
             [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
             capture_output=True, timeout=120
         )
-        status = "ok" if result.returncode == 0 else "fout"
-        print(f"[startup] fetchers/{script}: {status}")
+        if result.returncode == 0:
+            _fetch_status[script] = "ok"
+            print(f"[startup] fetchers/{script}: ok")
+        else:
+            fout = (result.stderr or result.stdout or b"").decode("utf-8", errors="replace").strip()[-300:]
+            _fetch_status[script] = f"fout: {fout}"
+            print(f"[startup] fetchers/{script}: FOUT\n{fout}")
     print("[startup] Klaar.")
 
 
@@ -930,6 +943,17 @@ def mail_rapport():
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/fetch-status")
+def fetch_status():
+    data_bestanden = ["gsc_data.json", "ga4_data.json", "leads_week.json",
+                      "trends_data.json", "clarity_data.json", "competitor_data.json"]
+    bestanden = {
+        f: os.path.exists(os.path.join(DATA_DIR, f))
+        for f in data_bestanden
+    }
+    return jsonify({"fetch_log": _fetch_status, "data_bestanden": bestanden})
 
 
 @app.route("/api/mail-test", methods=["POST"])
