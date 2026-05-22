@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import json
 import os
 import re
@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -1081,63 +1082,127 @@ def _stuur_alert_mail(anomalieën):
 
 
 def _genereer_taken(gsc, ga4, leads_data):
-    """Vraag OpenAI om 3 concrete, geprioriteerde taken te genereren."""
+    """Multi-agent debat: 4 specialisten stellen parallel hun beste kansen voor, coordinator kiest top 3."""
     kw_all = gsc.get("content_keywords") or gsc.get("top_keywords", [])
-    ctr_kansen = [k for k in kw_all if k.get("position", 99) <= 10 and k.get("ctr", 99) < 3.0 and k.get("impressions", 0) >= 30][:4]
-    pos_kansen = [k for k in kw_all if 4 <= k.get("position", 99) <= 15 and k.get("impressions", 0) >= 30][:4]
+    ctr_kansen = [k for k in kw_all if k.get("position", 99) <= 10 and k.get("ctr", 99) < 3.0 and k.get("impressions", 0) >= 30][:5]
+    pos_kansen = [k for k in kw_all if 4 <= k.get("position", 99) <= 15 and k.get("impressions", 0) >= 30][:5]
     dl = leads_data.get("directe_leads", {})
 
     clarity = load_json("clarity_data.json")
-    clarity_blok = ""
+    clarity_blok = "Geen Clarity-data beschikbaar."
     if clarity and isinstance(clarity.get("metrics"), dict):
         m = clarity["metrics"]
-        pop = [p.get("url", "") for p in m.get("populaire_paginas", [])[:5]]
-        apparaten = {a["naam"]: a["sessies"] for a in m.get("apparaten", [])}
-        clarity_blok = f"""
-- Clarity gedragsdata:
-  - Dead clicks: {m.get('dead_click_pct', 0)}% ({m.get('dead_click_paginas', 0)} pagina's)
-  - Rage clicks: {m.get('rage_click_pct', 0)}%
-  - Quick back: {m.get('quickback_pct', 0)}% ({m.get('quickback_paginas', 0)} pagina's)
-  - Scroll diepte: {m.get('scroll_diepte', 0)}%
-  - Actieve tijd: {m.get('actieve_tijd_sec', 0)}s
-  - Apparaten: {json.dumps(apparaten, ensure_ascii=False)}
-  - Populaire pagina's in Clarity: {pop}"""
+        pop = [p.get("url", p.get("pad", "")) for p in m.get("populaire_paginas", [])[:5]]
+        clarity_blok = (
+            f"Dead clicks: {m.get('dead_click_pct', 0)}% ({m.get('dead_click_paginas', 0)} pagina's) | "
+            f"Rage clicks: {m.get('rage_click_pct', 0)}% | Quick back: {m.get('quickback_pct', 0)}% | "
+            f"Scroll diepte: {m.get('scroll_diepte', 0)}% | Actieve tijd: {m.get('actieve_tijd_sec', 0)}s | "
+            f"Populaire pagina's: {pop}"
+        )
 
-    prompt = f"""Je bent een SEO- en CRO-strateeg voor dakdekkersgids.nl (leadgen-site dakdekkers Nederland).
+    data_blok = (
+        f"GSC: clicks {gsc.get('totals',{}).get('clicks')} ({gsc.get('totals',{}).get('clicks_growth')}%), "
+        f"impressions {gsc.get('totals',{}).get('impressions')} ({gsc.get('totals',{}).get('impressions_growth')}%)\n"
+        f"GA4: sessies {ga4.get('totals',{}).get('sessions')} ({ga4.get('totals',{}).get('sessions_growth')}%), bounce {ga4.get('totals',{}).get('bounce_rate')}%\n"
+        f"Leads: {dl.get('totaal_deze_week')} (vorige week: {dl.get('totaal_vorige_week')}) | per pagina: {json.dumps(leads_data.get('directe_leads',{}).get('per_pagina',[])[:5], ensure_ascii=False)}\n"
+        f"CTR-kansen (pos <=10, CTR <3%, imp >=30): {json.dumps(ctr_kansen, ensure_ascii=False)}\n"
+        f"Positie-kansen (pos 4-15, imp >=30): {json.dumps(pos_kansen, ensure_ascii=False)}\n"
+        f"Top pagina's GSC: {json.dumps(gsc.get('top_pages',[])[:6], ensure_ascii=False)}\n"
+        f"Cannibalisatie: {json.dumps(gsc.get('cannibalisatie',[])[:5], ensure_ascii=False)}\n"
+        f"Verwaarloosde pagina's: {json.dumps(gsc.get('verwaarloosde_paginas',[])[:5], ensure_ascii=False)}\n"
+        f"Clarity: {clarity_blok}"
+    )
 
-Data van vandaag:
-- Clicks: {gsc.get('totals', {}).get('clicks')} ({gsc.get('totals', {}).get('clicks_growth')}% t.o.v. vorige week)
-- Sessies: {ga4.get('totals', {}).get('sessions')} ({ga4.get('totals', {}).get('sessions_growth')}%)
-- Leads deze week: {dl.get('totaal_deze_week')} (vorige week: {dl.get('totaal_vorige_week')})
-- CTR-kansen (top 10, CTR < 3%): {json.dumps(ctr_kansen, ensure_ascii=False)}
-- Positie-kansen (pos 4-15): {json.dumps(pos_kansen, ensure_ascii=False)}
-- Top pagina's: {json.dumps(gsc.get('top_pages', [])[:5], ensure_ascii=False)}{clarity_blok}
+    regels = (
+        "REGELS:\n"
+        '- Verboden woorden: "analyseer", "evalueer", "onderzoek", "optimaliseer", "bekijk", "controleer of"\n'
+        "- Noem altijd een specifieke URL of keyword uit de data\n"
+        "- Beschrijf de exacte handeling, niet het probleem\n"
+        '- Geef antwoord als JSON-array: [{"voorstel": "titel (max 8 woorden)", "actie": "exacte handeling in 1-2 zinnen", "impact": "hoog|middel|laag", "tijd_minuten": 30}]'
+    )
 
-Beschikbare medewerkers: {', '.join(MEDEWERKERS)}
-
-Genereer precies 3 taken voor vandaag. Elke taak moet binnen 2 uur afgerond kunnen worden door één persoon.
-
-Geef antwoord als JSON:
-{{"taken": [
-  {{"taak": "korte taaktitel (max 8 woorden)", "toelichting": "1-2 zinnen", "medewerker": "naam uit lijst", "prioriteit": "hoog|middel|laag"}},
-  {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}},
-  {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}}
-]}}
-
-HARDE REGELS — overtreed deze niet:
-- Verboden woorden in toelichting: "analyseer", "evalueer", "onderzoek", "optimaliseer", "bekijk", "controleer of". Gebruik in plaats daarvan de exacte actie: "pas de title tag aan naar...", "voeg een FAQ-blok toe aan...", "open Clarity en bekijk de opname van...", "schrijf een nieuwe meta description voor..."
-- Noem altijd een specifieke pagina-URL of keyword uit de data, nooit een categorie of algemene term
-- De toelichting legt uit WAT er precies gedaan moet worden, niet waarom het een probleem is
-- Voor Clarity-taken: noem de exacte pagina uit populaire_paginas en de specifieke actie in Clarity (bijv. "Open Clarity → filter op /bespaar-tab/ → bekijk de dead click recordings en noteer welke elementen worden aangeklikt maar niet werken")
-- Wijs elke taak aan een andere medewerker toe"""
+    agenten = {
+        "SEO-specialist": (
+            "Je bent SEO-specialist voor dakdekkersgids.nl. Jouw focus: title tags, meta descriptions, interne links, posities, featured snippets, CTR.\n\n"
+            f"DATA:\n{data_blok}\n\n{regels}\n\n"
+            "Stel je 2 beste SEO-actiepunten voor die deze week de meeste clicks of leads opleveren. Baseer je uitsluitend op de data."
+        ),
+        "CRO/leads-specialist": (
+            "Je bent CRO-specialist (conversie-optimalisatie) voor dakdekkersgids.nl. Jouw focus: formulieren, dead clicks, quick back, bounce, mobiele UX, CTA-plaatsing.\n\n"
+            f"DATA:\n{data_blok}\n\n{regels}\n\n"
+            "Stel je 2 beste CRO-actiepunten voor die deze week de meeste extra leads opleveren. Baseer je uitsluitend op de data."
+        ),
+        "Content-strateeg": (
+            "Je bent content-strateeg voor dakdekkersgids.nl. Jouw focus: nieuwe pagina's, FAQ-secties, content-gaps, inhoudslengte, cannibalisatie oplossen.\n\n"
+            f"DATA:\n{data_blok}\n\n{regels}\n\n"
+            "Stel je 2 beste content-actiepunten voor. Baseer je uitsluitend op de data."
+        ),
+        "Anomalie-detective": (
+            "Je bent data-analist voor dakdekkersgids.nl. Jouw focus: onverwachte dalingen, CTR-anomalieen, bounce-pieken, verwaarloosde pagina's.\n\n"
+            f"DATA:\n{data_blok}\n\n{regels}\n\n"
+            "Stel je 2 meest urgente actiepunten voor op basis van afwijkingen in de data."
+        ),
+    }
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=700
+
+    def _vraag_agent(naam, prompt):
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400,
+        )
+        raw = resp.choices[0].message.content
+        try:
+            voorstellen = json.loads(raw)
+            if isinstance(voorstellen, dict):
+                voorstellen = voorstellen.get("voorstellen", voorstellen.get("taken", [voorstellen]))
+        except (json.JSONDecodeError, TypeError):
+            match = re.search(r'\[.*\]', raw, re.DOTALL)
+            voorstellen = json.loads(match.group()) if match else []
+        return naam, voorstellen
+
+    alle_voorstellen = {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {pool.submit(_vraag_agent, naam, prompt): naam for naam, prompt in agenten.items()}
+        for future in as_completed(futures):
+            try:
+                naam, voorstellen = future.result()
+                alle_voorstellen[naam] = voorstellen
+            except Exception as e:
+                alle_voorstellen[futures[future]] = []
+                print(f"Agent {futures[future]} mislukt: {e}")
+
+    debat_samenvatting = "\n\n".join(
+        f"=== {naam} ===\n{json.dumps(v, ensure_ascii=False, indent=2)}"
+        for naam, v in alle_voorstellen.items()
+        if v
     )
-    raw = response.choices[0].message.content
+
+    medewerkers_str = ", ".join(MEDEWERKERS) if MEDEWERKERS else "het team"
+    coordinator_prompt = (
+        "Je bent de eindredacteur van dakdekkersgids.nl. Vier specialisten hebben hun beste actiepunten ingebracht voor vandaag.\n\n"
+        f"VOORSTELLEN VAN DE AGENTS:\n{debat_samenvatting}\n\n"
+        f"Beschikbare medewerkers: {medewerkers_str}\n\n"
+        "Kies de 3 beste taken op basis van impact x uitvoerbaarheid vandaag. Combineer overlappende voorstellen. Wijs elke taak aan een andere medewerker toe.\n\n"
+        "HARDE REGELS:\n"
+        '- Verboden woorden in toelichting: "analyseer", "evalueer", "onderzoek", "optimaliseer", "bekijk", "controleer of"\n'
+        "- Noem altijd een specifieke pagina-URL of keyword, nooit een categorie\n"
+        "- De toelichting beschrijft WAT er precies gedaan wordt, niet waarom het een probleem is\n"
+        "- Elke taak aan een andere medewerker\n\n"
+        'Geef antwoord als JSON:\n{"taken": [\n'
+        '  {"taak": "titel (max 8 woorden)", "toelichting": "exacte handeling in 1-2 zinnen", "medewerker": "naam", "prioriteit": "hoog|middel|laag"},\n'
+        '  {"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."},\n'
+        '  {"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}\n'
+        "]}"
+    )
+
+    coord_resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": coordinator_prompt}],
+        max_tokens=700,
+    )
+    raw = coord_resp.choices[0].message.content
     try:
         data = json.loads(raw)
         return data.get("taken", data) if isinstance(data, dict) else data
@@ -1149,7 +1214,6 @@ HARDE REGELS — overtreed deze niet:
             except json.JSONDecodeError:
                 pass
     return []
-
 
 def _stuur_takenmail():
     """Stuur dagelijkse takenmail met 3 AI-gegenereerde actiepunten."""
