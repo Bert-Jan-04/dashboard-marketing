@@ -9,8 +9,10 @@ SITEMAP_INDEX = "https://dakdekkersgids.nl/sitemap_index.xml"
 NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
+
 def fetch_xml(url):
-    res = requests.get(url, timeout=15)
+    res = requests.get(url, headers=HEADERS, timeout=15)
     res.raise_for_status()
     return ET.fromstring(res.content)
 
