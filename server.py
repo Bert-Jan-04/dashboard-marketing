@@ -911,13 +911,15 @@ def _dagelijkse_mail_loop():
 
 _fetch_status = {}
 
-def _startup_fetch():
+FETCH_TIMEOUTS = {"trends.py": 300, "leads.py": 180}
+
+def _run_fetcher(script):
     global _fetch_status
-    print("[startup] Data ophalen...")
-    for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
+    timeout = FETCH_TIMEOUTS.get(script, 120)
+    try:
         result = subprocess.run(
             [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
-            capture_output=True, timeout=120
+            capture_output=True, timeout=timeout
         )
         if result.returncode == 0:
             _fetch_status[script] = "ok"
@@ -926,6 +928,19 @@ def _startup_fetch():
             fout = (result.stderr or result.stdout or b"").decode("utf-8", errors="replace").strip()[-300:]
             _fetch_status[script] = f"fout: {fout}"
             print(f"[startup] fetchers/{script}: FOUT\n{fout}")
+    except subprocess.TimeoutExpired:
+        _fetch_status[script] = f"timeout na {timeout}s"
+        print(f"[startup] fetchers/{script}: TIMEOUT na {timeout}s")
+    except Exception as e:
+        _fetch_status[script] = f"exception: {e}"
+        print(f"[startup] fetchers/{script}: EXCEPTION {e}")
+
+
+def _startup_fetch():
+    global _fetch_status
+    print("[startup] Data ophalen...")
+    for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
+        _run_fetcher(script)
     print("[startup] Klaar.")
 
 
