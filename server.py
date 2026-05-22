@@ -1001,16 +1001,21 @@ Data van vandaag:
 
 Beschikbare medewerkers: {', '.join(MEDEWERKERS)}
 
-Genereer precies 3 concrete uitvoerbare taken voor vandaag. Gebruik ook de Clarity gedragsdata als dat relevant is (bijv. lage scroll diepte = formulier niet zichtbaar, hoge dead clicks = gebroken elementen, mobiel dominant = mobile-first denken). Prioriteer op leadgen-impact.
+Genereer precies 3 taken voor vandaag. Elke taak moet binnen 2 uur afgerond kunnen worden door één persoon.
 
 Geef antwoord als JSON:
 {{"taken": [
-  {{"taak": "korte taaktitel (max 8 woorden)", "toelichting": "1-2 zinnen met concrete data erbij", "medewerker": "naam uit lijst", "prioriteit": "hoog|middel|laag"}},
+  {{"taak": "korte taaktitel (max 8 woorden)", "toelichting": "1-2 zinnen", "medewerker": "naam uit lijst", "prioriteit": "hoog|middel|laag"}},
   {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}},
   {{"taak": "...", "toelichting": "...", "medewerker": "...", "prioriteit": "..."}}
 ]}}
 
-Regels: elke taak direct uitvoerbaar, gebruik exacte keywords/pagina's of Clarity-inzichten, wijs elke taak aan een andere medewerker toe."""
+HARDE REGELS — overtreed deze niet:
+- Verboden woorden in toelichting: "analyseer", "evalueer", "onderzoek", "optimaliseer", "bekijk", "controleer of". Gebruik in plaats daarvan de exacte actie: "pas de title tag aan naar...", "voeg een FAQ-blok toe aan...", "open Clarity en bekijk de opname van...", "schrijf een nieuwe meta description voor..."
+- Noem altijd een specifieke pagina-URL of keyword uit de data, nooit een categorie of algemene term
+- De toelichting legt uit WAT er precies gedaan moet worden, niet waarom het een probleem is
+- Voor Clarity-taken: noem de exacte pagina uit populaire_paginas en de specifieke actie in Clarity (bijv. "Open Clarity → filter op /bespaar-tab/ → bekijk de dead click recordings en noteer welke elementen worden aangeklikt maar niet werken")
+- Wijs elke taak aan een andere medewerker toe"""
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
