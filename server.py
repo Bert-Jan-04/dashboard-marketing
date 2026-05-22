@@ -689,10 +689,26 @@ def refresh_leads():
 
 
 # ── Dagelijkse mail scheduler ─────────────────────────────────────────────────
-_dagelijks_mail_datum = None
 MAIL_UUR = 7  # verstuur elke dag om dit uur
 
-SNAPSHOT_FILE = os.path.join(DATA_DIR, "gsc_snapshot.json")
+SNAPSHOT_FILE  = os.path.join(DATA_DIR, "gsc_snapshot.json")
+MAIL_DATUM_FILE = os.path.join(DATA_DIR, "mail_datum.json")
+
+
+def _lees_mail_datum():
+    if not os.path.exists(MAIL_DATUM_FILE):
+        return None
+    try:
+        with open(MAIL_DATUM_FILE, encoding="utf-8") as f:
+            d = json.load(f).get("datum")
+        return date.fromisoformat(d) if d else None
+    except Exception:
+        return None
+
+
+def _sla_mail_datum_op(d):
+    with open(MAIL_DATUM_FILE, "w", encoding="utf-8") as f:
+        json.dump({"datum": d.isoformat()}, f)
 
 # Drempelwaarden voor signalering
 POSITIE_DREMPEL      = 5     # keyword: plaatsen stijging of daling
@@ -1119,12 +1135,11 @@ def _stuur_takenmail():
 
 
 def _dagelijkse_mail_loop():
-    global _dagelijks_mail_datum
     while True:
         try:
             nu      = datetime.now()
             vandaag = nu.date()
-            if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
+            if nu.hour >= MAIL_UUR and _lees_mail_datum() != vandaag:
                 print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mails — data vernieuwen...")
                 _sla_snapshot_op()
                 for script in ["gsc.py", "ga4.py", "trends.py", "leads.py", "clarity.py"]:
@@ -1138,7 +1153,7 @@ def _dagelijkse_mail_loop():
                 signalen = _detect_signalen()
                 if signalen:
                     _stuur_signalering_mail(signalen)
-                _dagelijks_mail_datum = vandaag
+                _sla_mail_datum_op(vandaag)
                 print(f"[scheduler] Dagelijkse mails verstuurd.")
         except Exception as e:
             import traceback
