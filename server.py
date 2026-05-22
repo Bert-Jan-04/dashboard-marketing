@@ -865,7 +865,9 @@ def _dagelijkse_mail_loop():
                 _dagelijks_mail_datum = vandaag
                 print(f"[scheduler] Dagelijkse mail verstuurd.")
         except Exception as e:
+            import traceback
             print(f"[scheduler] Fout: {e}")
+            print(traceback.format_exc())
         time.sleep(300)  # check elke 5 minuten
 
 
@@ -897,13 +899,28 @@ def mail_rapport():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/mail-test", methods=["POST"])
+def mail_test():
+    try:
+        import smtplib
+        gmail  = os.getenv("GMAIL_ADDRESS")
+        pwd    = os.getenv("GMAIL_APP_PASSWORD")
+        if not gmail or not pwd:
+            return jsonify({"ok": False, "error": "GMAIL_ADDRESS of GMAIL_APP_PASSWORD niet ingesteld"}), 500
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(gmail, pwd)
+        return jsonify({"ok": True, "bericht": f"SMTP login geslaagd voor {gmail}"})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def _stuur_mail_intern():
     leads = load_json("leads_week.json")
     gsc   = load_json("gsc_data.json")
     ga4   = load_json("ga4_data.json")
 
     if not leads:
-        return jsonify({"ok": False, "error": "Geen leads data beschikbaar"}), 400
+        raise ValueError("Geen leads data beschikbaar — ververs eerst de data via het dashboard")
 
     periode   = leads.get("periode", {})
     week_s    = periode.get("deze_week", {}).get("start", "")
