@@ -582,6 +582,27 @@ JE EXPERTISE:
 
         expertise = expertise_per_agent.get(tab, expertise_per_agent["seo"])
 
+        ck = gsc.get("content_keywords", gsc.get("top_keywords", []))
+        kantoor_gsc_blok = f"""SEARCH CONSOLE ({gsc.get('period', {}).get('this_week', {}).get('start')} t/m {gsc.get('period', {}).get('this_week', {}).get('end')}):
+- Clicks: {gsc.get('totals', {}).get('clicks')} ({gsc.get('totals', {}).get('clicks_growth')}% t.o.v. vorige week)
+- Impressions: {gsc.get('totals', {}).get('impressions')} ({gsc.get('totals', {}).get('impressions_growth')}%)
+- Top content-keywords (gefilterd, geen plaatsen/bedrijven): {json.dumps(ck[:20], ensure_ascii=False)}
+- Top pagina's: {json.dumps(gsc.get('top_pages', [])[:20], ensure_ascii=False)}
+- CTR-kansen (pos ≤10, CTR <3%, imp ≥30): {json.dumps([k for k in ck if k.get('position', 99) <= 10 and k.get('ctr', 99) < 3 and k.get('impressions', 0) >= 30][:10], ensure_ascii=False)}
+- Positie-kansen (pos 4-15, imp ≥30): {json.dumps([k for k in ck if 4 <= k.get('position', 99) <= 15 and k.get('impressions', 0) >= 30][:10], ensure_ascii=False)}
+- Cannibalisatie: {json.dumps(gsc.get('cannibalisatie', [])[:10], ensure_ascii=False)}
+- Verwaarloosde pagina's: {json.dumps(gsc.get('verwaarloosde_paginas', [])[:10], ensure_ascii=False)}"""
+
+        kantoor_data_blok = f"""{kantoor_gsc_blok}
+
+{ga4_blok}
+
+{leads_blok}
+
+{clarity_blok}
+
+{trends_blok}"""
+
         systeem = f"""{expertise}
 
 STRENGE OUTPUTREGELS — overtreed deze niet:
@@ -593,7 +614,7 @@ STRENGE OUTPUTREGELS — overtreed deze niet:
 6. Formaat: **[pagina of keyword]** — [actie] — [verwacht effect].
 
 DASHBOARDDATA:
-{alle_data_blok}"""
+{kantoor_data_blok}"""
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     max_tok = 400 if kantoor_modus else 1200
