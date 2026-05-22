@@ -4,9 +4,10 @@ credentials/
 gmail_credentials.json
 gmail_token.json
 
-# Data (gegenereerd, niet in repo — behalve clarity seed)
+# Data (gegenereerd, niet in repo — behalve clarity seed en sitemap)
 data/*
 !data/clarity_data.json
+!data/sitemap_urls.json
 
 # One-off scripts (geen onderdeel van de app)
 maak_rapport.py

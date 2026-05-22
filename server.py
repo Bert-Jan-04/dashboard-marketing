@@ -563,7 +563,7 @@ def signaal():
 @app.route("/api/refresh", methods=["POST"])
 def refresh():
     results = {}
-    scripts = [os.path.join("fetchers", s) for s in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "clarity.py"]]
+    scripts = [os.path.join("fetchers", s) for s in ["gsc.py", "ga4.py", "trends.py", "clarity.py"]]
     for script in scripts:
         path = os.path.join(BASE_DIR, script)
         result = subprocess.run(
@@ -857,7 +857,7 @@ def _dagelijkse_mail_loop():
             if nu.hour >= MAIL_UUR and _dagelijks_mail_datum != vandaag:
                 print(f"[scheduler {nu.strftime('%H:%M')}] Dagelijkse mail — data vernieuwen...")
                 _sla_snapshot_op()
-                for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
+                for script in ["gsc.py", "ga4.py", "trends.py", "leads.py", "clarity.py"]:
                     subprocess.run(
                         [sys.executable, os.path.join(BASE_DIR, "fetchers", script)],
                         capture_output=True, timeout=120
@@ -905,7 +905,7 @@ def _run_fetcher(script):
 def _startup_fetch():
     global _fetch_status
     print("[startup] Data ophalen...")
-    for script in ["gsc.py", "ga4.py", "sitemap.py", "trends.py", "leads.py", "clarity.py"]:
+    for script in ["gsc.py", "ga4.py", "trends.py", "leads.py", "clarity.py"]:
         _run_fetcher(script)
     print("[startup] Klaar.")
 
