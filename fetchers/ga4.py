@@ -21,7 +21,7 @@ from rules import (
 DATA_FILE = os.path.join(ROOT_DIR, "data", "ga4_data.json")
 
 today      = date.today()
-week_end   = today - timedelta(days=1)
+week_end   = today - timedelta(days=5)
 week_start = week_end - timedelta(days=week_end.weekday())
 prev_end   = week_start - timedelta(days=1)
 prev_start = prev_end - timedelta(days=6)
