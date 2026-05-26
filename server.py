@@ -1187,6 +1187,21 @@ def _stuur_signalering_mail(signalen):
     if not signalen:
         return
 
+    # Prioriteit per type: hogere score = belangrijker
+    prioriteit = {
+        "leads_daling":    10,
+        "grote_daling":     8,
+        "clicks_totaal":    7,
+        "rage_clicks":      6,
+        "top10_entry":      5,
+        "keyword_positie":  4,
+        "dead_clicks":      3,
+        "quickback":        2,
+        "script_errors":    2,
+        "lage_scroll":      1,
+    }
+    signalen = sorted(signalen, key=lambda s: prioriteit.get(s["type"], 0), reverse=True)[:5]
+
     gmail_address = os.getenv("GMAIL_ADDRESS", "russchenbertjan@gmail.com")
 
     positief = [s for s in signalen if s["niveau"] == "positief"]
