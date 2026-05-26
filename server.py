@@ -640,9 +640,17 @@ De pagina is klaar als:
 
 {context_blok}{pagina_context}{extra_instructies}
 
-VOLLEDIGE DASHBOARDDATA:
+VOLLEDIGE GSC-DATA (alle keywords, gesorteerd op impressies):
 
-{alle_data_blok}{suggestie_instructie}"""
+{json.dumps(sorted(gsc.get('top_keywords', []) + [k for k in gsc.get('kw_month', []) if k.get('query') not in {kw.get('query') for kw in gsc.get('top_keywords', [])}], key=lambda x: x.get('impressions', 0), reverse=True), ensure_ascii=False)}
+
+OVERIGE DASHBOARDDATA:
+
+{ga4_blok}
+
+{leads_blok}
+
+{competitor_blok}{suggestie_instructie}"""
 
     else:  # strategie
         systeem = f"""Je bent de strategisch analist van dakdekkersgids.nl. Je wordt ingeschakeld als algemene sparringpartner wanneer een vraag niet onder een specifieke agent valt, of wanneer er behoefte is aan een breder weekoverzicht.
