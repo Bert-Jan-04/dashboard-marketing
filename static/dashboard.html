@@ -1187,7 +1187,7 @@ function navigeer(pagina) {
     document.getElementById('page-titel').textContent = titels[pagina];
 
     const navItems = document.querySelectorAll('.nav-item');
-    const index = { home: 0, dashboard: 1, searchconsole: 2, analytics: 3, trends: 4, keywords: 5, clusters: 6, analyse: 7, clarity: 8, concurrenten: 9 };
+    const index = { home: 0, dashboard: 1, kantoor: 2, searchconsole: 3, analytics: 4, trends: 5, keywords: 6, clusters: 7, analyse: 8, clarity: 9, concurrenten: 10 };
     if (index[pagina] !== undefined) navItems[index[pagina]].classList.add('active');
 
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
