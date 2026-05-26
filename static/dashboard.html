@@ -52,6 +52,11 @@
         .card { background: #1e1e1e; border: 1px solid #ffffff1a; border-radius: 20px; padding: 26px; margin-bottom: 24px; }
         .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
         .card-sub { font-size: 12px; color: #828282; margin-bottom: 20px; }
+        .tooltip-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; cursor: default; }
+        .tooltip-icon { font-size: 11px; color: #555; border: 1px solid #333; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
+        .tooltip-box { display: none; position: absolute; bottom: calc(100% + 6px); right: 0; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px 12px; width: 260px; font-size: 11.5px; color: #aaa; line-height: 1.6; z-index: 99; white-space: normal; }
+        .tooltip-box b { color: #fff; }
+        .tooltip-wrap:hover .tooltip-box { display: block; }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
 
         table { width: 100%; border-collapse: collapse; }
@@ -1111,7 +1116,19 @@
                     <th style="text-align:right">Jouw impressies</th>
                     <th style="text-align:right">Jouw clicks</th>
                     <th>Concurrenten</th>
-                    <th style="text-align:right">Score</th>
+                    <th style="text-align:right">
+                        <span class="tooltip-wrap">Score
+                            <span class="tooltip-icon">i</span>
+                            <span class="tooltip-box">
+                                <b>Dreigingsscore</b> — hoe gevaarlijk is dit keyword?<br><br>
+                                <b>+30 per concurrent</b> met content over dit keyword<br>
+                                <b>+20</b> als jij op positie 4–15 staat (kwetsbare zone)<br>
+                                <b>+10</b> als jij op positie 16–20 staat<br>
+                                <b>+max. 50</b> op basis van jouw impressies<br><br>
+                                🔴 ≥ 60 &nbsp;·&nbsp; 🟡 30–59 &nbsp;·&nbsp; grijs &lt; 30
+                            </span>
+                        </span>
+                    </th>
                 </tr></thead>
                 <tbody id="cc-dreigingen-tabel"><tr><td colspan="6" class="loading">Nog geen data</td></tr></tbody>
             </table>
