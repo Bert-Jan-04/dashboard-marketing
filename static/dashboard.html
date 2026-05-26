@@ -254,104 +254,92 @@
 
     <!-- ======================== PAGINA: HOME ======================== -->
     <div class="page" id="page-home">
-        <div style="max-width:860px">
+        <div style="max-width:900px">
 
-            <div style="margin-bottom:32px">
-                <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Marketing Intelligence — dakdekkersgids.nl</h2>
-                <p style="color:#828282;font-size:14px;line-height:1.7">Dit dashboard centraliseert alle SEO- en leadgen-data van dakdekkersgids.nl. Je ziet live data uit Google Search Console, GA4 en Mangools, gecombineerd met AI-agenten die de data voor je analyseren en vertalen naar concrete acties.</p>
+            <!-- HERO -->
+            <div style="margin-bottom:48px;padding-bottom:40px;border-bottom:1px solid #1a1a1a">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+                    <span style="width:7px;height:7px;border-radius:50%;background:#02CE80;box-shadow:0 0 8px #02CE80;animation:pulse 2s infinite;flex-shrink:0"></span>
+                    <span style="font-size:10.5px;color:#02CE80;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">Live dashboard</span>
+                </div>
+                <h1 style="font-size:30px;font-weight:800;color:#fff;margin-bottom:14px;line-height:1.2">Marketing Intelligence<br><span style="color:#02CE80">dakdekkersgids.nl</span></h1>
+                <p style="font-size:14px;color:#555;line-height:1.85;max-width:560px">Alle SEO- en leadgen-data op één plek. Live data uit Google Search Console, GA4 en Mangools — gecombineerd met 9 AI-agenten die de data analyseren en vertalen naar concrete actiepunten voor meer leads.</p>
+                <div style="display:flex;gap:10px;margin-top:22px">
+                    <button onclick="navigeer('dashboard')" style="background:#02CE80;border:none;border-radius:8px;padding:9px 20px;font-size:12.5px;font-weight:700;color:#000;cursor:pointer">Naar dashboard →</button>
+                    <button onclick="navigeer('kantoor')" style="background:none;border:1px solid #2a2a2a;border-radius:8px;padding:9px 20px;font-size:12.5px;color:#aaa;cursor:pointer">Kantoor — AI agenten</button>
+                </div>
+            </div>
+
+            <!-- HOE HET WERKT -->
+            <div style="margin-bottom:48px">
+                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">Hoe het werkt</div>
+                <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr;align-items:center;background:#111;border:1px solid #1a1a1a;border-radius:14px;padding:24px 20px">
+                    <div style="text-align:center;padding:8px 4px">
+                        <div style="font-size:22px;margin-bottom:10px">📡</div>
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">Data ophalen</div>
+                        <div style="font-size:11px;color:#444;line-height:1.6">GSC · GA4 · Mangools<br>Clarity · Concurrenten</div>
+                    </div>
+                    <div style="text-align:center;color:#2a2a2a;font-size:16px">→</div>
+                    <div style="text-align:center;padding:8px 4px">
+                        <div style="font-size:22px;margin-bottom:10px">📊</div>
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">Visualiseren</div>
+                        <div style="font-size:11px;color:#444;line-height:1.6">Rankings · Clusters<br>Trends · Concurrenten</div>
+                    </div>
+                    <div style="text-align:center;color:#2a2a2a;font-size:16px">→</div>
+                    <div style="text-align:center;padding:8px 4px">
+                        <div style="font-size:22px;margin-bottom:10px">🤖</div>
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">AI analyseren</div>
+                        <div style="font-size:11px;color:#444;line-height:1.6">9 gespecialiseerde<br>AI-agenten</div>
+                    </div>
+                    <div style="text-align:center;color:#2a2a2a;font-size:16px">→</div>
+                    <div style="text-align:center;padding:8px 4px">
+                        <div style="font-size:22px;margin-bottom:10px">✅</div>
+                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">Actiepunten</div>
+                        <div style="font-size:11px;color:#444;line-height:1.6">Taken · Briefings<br>Rapporten · Mails</div>
+                    </div>
+                </div>
             </div>
 
             <!-- MODULES -->
-            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Dashboard modules</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:36px">
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('dashboard')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Dashboard</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Wekelijks KPI-overzicht: clicks, sessies, offerteaanvragen en leads per cluster. Startpunt voor elke week.</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('searchconsole')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Search Console</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Rankende keywords met positie, CTR en impressies. Inclusief CTR-kansen (positie ≤10, CTR &lt;3%) en positie-kansen (positie 4–15).</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('analytics')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Analytics</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">GA4-data: sessies per kanaal, bounce rate, en offerteaanvragen per pagina. Laat zien welk verkeer converteert.</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('trends')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Trends</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Historische verkeers- en positiedata over meerdere weken. Toont seizoenspatronen en langetermijnbewegingen.</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('keywords')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Keyword Onderzoek</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Typ een zoekwoord — Mangools geeft volume, CPC en difficulty. Kruist direct met onze GSC-data om te zien of we al ranken.</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer" onclick="navigeer('clusters')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Clusters</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Leadattributie per inhoudscluster (plat dak, dakpannen, isolatie, etc.). Toont welk content direct leads genereert.</div>
-                </div>
-
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:18px 20px;cursor:pointer;grid-column:span 2" onclick="navigeer('analyse')">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#fff">◼ Analyse</div>
-                    <div style="font-size:12px;color:#828282;line-height:1.6">Diepere keyword- en paginaanalyse: positie-historiek, GSC vs GA4 vergelijking per pagina en seizoenspatronen per zoekwoord.</div>
-                </div>
-
+            <div style="margin-bottom:48px">
+                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">Dashboard modules</div>
+                <div id="home-modules-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px"></div>
             </div>
 
             <!-- AI AGENTEN -->
-            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">AI Agenten</div>
-            <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:36px">
-                <p style="font-size:12px;color:#828282;line-height:1.7;margin-bottom:18px">Rechts in het dashboard staat een chatinterface met 7 gespecialiseerde AI-agenten. Elke agent heeft directe toegang tot de live dashboard-data en een specifieke expertiserol. Je schakelt tussen agenten via de avatars bovenaan de chat.</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">SEO Agent</div>
-                        <div style="font-size:11px;color:#828282">Rankings, CTR-kansen, positiebewegingen. Denkt als een senior SEO-strateeg en geeft geprioriteerde acties op basis van GSC-data.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Conversie Agent</div>
-                        <div style="font-size:11px;color:#828282">Analyseert welke pagina's traffic hebben maar niet converteren. Combineert GA4 met leaddata.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Content Gap</div>
-                        <div style="font-size:11px;color:#828282">Zoekt zoekwoorden met impressies maar zonder goede content. Vertaalt naar nieuwe pagina-ideeën.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Anomalie Detective</div>
-                        <div style="font-size:11px;color:#828282">Signaleert onverwachte pieken of dalingen in clicks, sessies of leads en geeft een verklaring.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Rapportage Agent</div>
-                        <div style="font-size:11px;color:#828282">Scant het hele dashboard met de kennis van alle agenten en mailt een kant-en-klaar rapport naar russchenbertjan@gmail.com.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Concurrentie Agent</div>
-                        <div style="font-size:11px;color:#828282">Analyseert homedeal.nl, mijn-dakdekker.nl en kosten-dakdekker.nl op basis van sitemap- en Mangools-data.</div>
-                    </div>
-                    <div style="border-left:2px solid #02CE80;padding-left:12px;grid-column:span 2">
-                        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:3px">Plannings Agent</div>
-                        <div style="font-size:11px;color:#828282">Analyseert seizoenspatronen in GSC en GA4 en adviseert wanneer content te publiceren voor maximale leadgen-impact.</div>
-                    </div>
+            <div style="margin-bottom:48px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                    <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase">AI Agenten — Kantoor</div>
+                    <button onclick="navigeer('kantoor')" style="background:none;border:1px solid #02CE8030;border-radius:20px;padding:5px 14px;font-size:11px;color:#02CE80;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='#02CE8010'" onmouseout="this.style.background='none'">Open Kantoor →</button>
                 </div>
+                <p style="font-size:12px;color:#444;line-height:1.7;margin-bottom:18px;max-width:600px">Elke agent heeft directe toegang tot alle live dashboard-data. Klik op een agent om een gesprek te starten via het Kantoor-tabblad.</p>
+                <div id="home-agenten-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>
             </div>
 
             <!-- DATABRONNEN -->
-            <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Databronnen</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:32px">
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
-                    <div style="font-size:11px;font-weight:700;color:#4285f4;margin-bottom:5px">Google Search Console</div>
-                    <div style="font-size:11px;color:#828282;line-height:1.6">Keywords, posities, CTR en impressies. Wekelijks vernieuwd via de GSC API.</div>
-                </div>
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
-                    <div style="font-size:11px;font-weight:700;color:#e37400;margin-bottom:5px">Google Analytics 4</div>
-                    <div style="font-size:11px;color:#828282;line-height:1.6">Sessies, kanalen, bounce rate en offerteaanvragen. Gekoppeld via GA4 Data API.</div>
-                </div>
-                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px 16px">
-                    <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:5px">Mangools</div>
-                    <div style="font-size:11px;color:#828282;line-height:1.6">Zoekvolume, keyword difficulty en CPC. Gebruikt via KWFinder API voor keyword-onderzoek en concurrentenanalyse.</div>
+            <div style="margin-bottom:16px">
+                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">Databronnen</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+                    <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px 12px;text-align:center">
+                        <div style="font-size:11px;font-weight:700;color:#4285f4;margin-bottom:8px">Search Console</div>
+                        <div style="font-size:10.5px;color:#444;line-height:1.6">Keywords<br>Posities · CTR<br>Impressies</div>
+                    </div>
+                    <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px 12px;text-align:center">
+                        <div style="font-size:11px;font-weight:700;color:#e37400;margin-bottom:8px">Analytics 4</div>
+                        <div style="font-size:10.5px;color:#444;line-height:1.6">Sessies<br>Kanalen · Bounce<br>Aanvragen</div>
+                    </div>
+                    <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px 12px;text-align:center">
+                        <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:8px">Mangools</div>
+                        <div style="font-size:10.5px;color:#444;line-height:1.6">Zoekvolume<br>Difficulty · CPC<br>KWFinder</div>
+                    </div>
+                    <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px 12px;text-align:center">
+                        <div style="font-size:11px;font-weight:700;color:#06b6d4;margin-bottom:8px">Clarity</div>
+                        <div style="font-size:10.5px;color:#444;line-height:1.6">Rage clicks<br>Dead clicks · UX<br>Scroll depth</div>
+                    </div>
+                    <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px 12px;text-align:center">
+                        <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:8px">Concurrenten</div>
+                        <div style="font-size:10.5px;color:#444;line-height:1.6">Sitemaps<br>Keywords<br>Dreigingsscore</div>
+                    </div>
                 </div>
             </div>
 
@@ -1210,6 +1198,7 @@ function navigeer(pagina) {
     const index = { home: 0, dashboard: 1, kantoor: 2, searchconsole: 3, analytics: 4, trends: 5, keywords: 6, clusters: 7, analyse: 8, clarity: 9, concurrenten: 10 };
     if (index[pagina] !== undefined) navItems[index[pagina]].classList.add('active');
 
+    if (pagina === 'home') renderHomepage();
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
     if (pagina === 'analytics' && ga4Data) vulAnalyticsPagina();
     if (pagina === 'trends' && trendsData) vulTrendsPagina();
@@ -2264,6 +2253,49 @@ const AGENTS = {
 };
 
 const AGENT_KEYS = Object.keys(AGENTS);
+
+const HOME_MODULES = [
+    { key: 'dashboard',     naam: 'Dashboard',          kleur: '#02CE80', omschrijving: 'Wekelijks KPI-overzicht: clicks, sessies en leads per cluster. Startpunt voor elke werkweek.' },
+    { key: 'searchconsole', naam: 'Search Console',     kleur: '#4285f4', omschrijving: 'Alle rankende keywords met positie en CTR. Inclusief quick wins op positie 4–10.' },
+    { key: 'analytics',     naam: 'Analytics',          kleur: '#e37400', omschrijving: 'GA4: sessies per kanaal, bounce rate en offerteaanvragen per pagina.' },
+    { key: 'trends',        naam: 'Trends',             kleur: '#a78bfa', omschrijving: '8 weken historische data. Toont seizoenspatronen en langetermijnbewegingen.' },
+    { key: 'keywords',      naam: 'Keyword Onderzoek',  kleur: '#f59e0b', omschrijving: 'Typ een keyword en zie volume, difficulty en CPC, gekruist met jouw GSC-posities.' },
+    { key: 'clusters',      naam: 'Clusters',           kleur: '#10b981', omschrijving: 'Leadattributie per contentcluster. Welke content genereert daadwerkelijk leads?' },
+    { key: 'analyse',       naam: 'Analyse',            kleur: '#06b6d4', omschrijving: 'Positie-historiek, GSC vs. GA4 vergelijking per pagina, seizoenspatronen per keyword.' },
+    { key: 'clarity',       naam: 'Clarity',            kleur: '#ec4899', omschrijving: 'UX-gedragsdata: rage clicks, dead clicks, scroll depth en quick back per pagina.' },
+    { key: 'concurrenten',  naam: 'Concurrenten',       kleur: '#f59e0b', omschrijving: 'Dreigingsmatrix: welke keywords pakken homedeal, mijn-dakdekker en kosten-dakdekker af?' },
+];
+
+function renderHomepage() {
+    const mg = document.getElementById('home-modules-grid');
+    if (mg) {
+        mg.innerHTML = HOME_MODULES.map(m => `
+            <div onclick="navigeer('${m.key}')" style="background:#111;border:1px solid #1a1a1a;border-top:2px solid ${m.kleur}40;border-radius:12px;padding:18px 16px;cursor:pointer;transition:all 0.2s"
+                onmouseover="this.style.background='#161616';this.style.borderTopColor='${m.kleur}'"
+                onmouseout="this.style.background='#111';this.style.borderTopColor='${m.kleur}40'">
+                <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">${m.naam}</div>
+                <div style="font-size:11px;color:#444;line-height:1.6;margin-bottom:10px">${m.omschrijving}</div>
+                <div style="font-size:10.5px;color:${m.kleur};opacity:0.7">Ga naar →</div>
+            </div>`).join('');
+    }
+
+    const ag = document.getElementById('home-agenten-grid');
+    if (ag) {
+        ag.innerHTML = AGENT_KEYS.map(key => {
+            const a = AGENTS[key];
+            return `<div onclick="navigeer('kantoor')" style="background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px"
+                onmouseover="this.style.background='#161616';this.style.borderColor='#02CE8030'"
+                onmouseout="this.style.background='#111';this.style.borderColor='#1a1a1a'">
+                <div style="width:36px;height:36px;flex-shrink:0;border-radius:50%;overflow:hidden">${a.avatar}</div>
+                <div style="min-width:0">
+                    <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">${a.naam}</div>
+                    <div style="font-size:10px;color:#02CE80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">${a.tag}</div>
+                    <div style="font-size:11px;color:#444;line-height:1.5">${a.intro}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+}
 let actieveTab = 'seo';
 let chatGeschiedenissen = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
 let chatSuggesties     = Object.fromEntries(AGENT_KEYS.map(k => [k, []]));
@@ -2758,6 +2790,7 @@ async function startConcurrentScan(btn) {
 // Init
 wisselTab('seo');
 renderKantoor();
+renderHomepage();
 haalSignaalOp('dashboard');
 
 </script>
