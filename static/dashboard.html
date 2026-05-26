@@ -190,6 +190,9 @@
         .kantoor-send { background: #02CE80; color: #000; border: none; border-radius: 8px; width: 30px; height: 30px; font-size: 14px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .kantoor-send:hover { background: #00b870; }
         .kantoor-send:disabled { opacity: 0.3; cursor: not-allowed; }
+        .kantoor-startvragen { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px 4px; }
+        .kantoor-startvraag { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 8px 12px; font-size: 11.5px; color: #828282; cursor: pointer; text-align: left; transition: all 0.15s; line-height: 1.4; }
+        .kantoor-startvraag:hover { border-color: #02CE8040; color: #ccc; background: #02CE8008; }
 
     </style>
 </head>
@@ -2057,6 +2060,7 @@ const AGENTS = {
         naam: 'SEO Agent', tag: 'Rankings & keywords',
         intro: 'Ik analyseer je GSC-data: rankings, CTR-kansen en keyword-mogelijkheden.',
         placeholder: 'Bijv. "Welke keywords verdienen meer aandacht?"',
+        vragen: ['Welke pagina\'s op positie 4–10 kan ik deze week pushen?', 'Waar daalt mijn CTR terwijl de positie stabiel blijft?', 'Welke title tags moet ik als eerste aanpassen?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av1" cx="50%" cy="35%"><stop offset="0%" stop-color="#1e3a6e"/><stop offset="100%" stop-color="#0d1f3c"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av1)"/>
@@ -2078,6 +2082,7 @@ const AGENTS = {
         naam: 'Conversie Agent', tag: 'Traffic → leads',
         intro: 'Ik kijk welke pagina\'s veel verkeer krijgen maar weinig converteren.',
         placeholder: 'Bijv. "Waar haken bezoekers af?"',
+        vragen: ['Welke pagina\'s hebben veel sessies maar nauwelijks leads?', 'Welk cluster converteert het slechtst en waarom?', 'Waar haken mobiele bezoekers het meest af?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av2" cx="50%" cy="35%"><stop offset="0%" stop-color="#14532d"/><stop offset="100%" stop-color="#052e16"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av2)"/>
@@ -2095,6 +2100,7 @@ const AGENTS = {
         naam: 'Content Gap', tag: 'Nieuwe kansen',
         intro: 'Ik zoek zoekwoorden waar je nog geen content voor hebt maar kansen liggen.',
         placeholder: 'Bijv. "Welke content ontbreekt nog?"',
+        vragen: ['Welke zoekwoorden hebben veel impressies maar geen goede pagina?', 'Welk cluster heeft de dunste content voor het zoekvolume?', 'Welke contentpagina ontbreekt er die concurrenten wel hebben?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av3" cx="50%" cy="35%"><stop offset="0%" stop-color="#3b1f6e"/><stop offset="100%" stop-color="#1a0d35"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av3)"/>
@@ -2113,6 +2119,7 @@ const AGENTS = {
         naam: 'Anomalie Detective', tag: 'Pieken & dalingen',
         intro: 'Ik signaleer opvallende dalingen of pieken in verkeer, CTR of leads.',
         placeholder: 'Bijv. "Zijn er onverwachte dalingen deze week?"',
+        vragen: ['Zijn er deze week onverwachte dalingen in clicks of leads?', 'Is er een CTR-daling die niet door positieverlies wordt verklaard?', 'Welke pagina vertoont het meest afwijkend gedrag?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av4" cx="50%" cy="35%"><stop offset="0%" stop-color="#7c1d1d"/><stop offset="100%" stop-color="#3b0d0d"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av4)"/>
@@ -2131,6 +2138,7 @@ const AGENTS = {
         naam: 'Rapportage Agent', tag: 'Rapporten & exports',
         intro: 'Ik genereer kant-en-klare rapporten: wat ging goed, wat daalde, actiepunten.',
         placeholder: 'Bijv. "Maak een weekrapport voor dakdekkersgids.nl"',
+        vragen: ['Maak een weekrapport voor dakdekkersgids.nl', 'Wat zijn de drie belangrijkste signalen van deze week?', 'Welke KPI\'s zijn deze week het meest opvallend?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av5" cx="50%" cy="35%"><stop offset="0%" stop-color="#134e4a"/><stop offset="100%" stop-color="#042f2e"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av5)"/>
@@ -2155,6 +2163,7 @@ const AGENTS = {
         naam: 'Concurrentie Agent', tag: 'SERP-analyse',
         intro: 'Ik analyseer welke domeinen jou verdringen op jouw belangrijkste zoekwoorden.',
         placeholder: 'Bijv. "Wie wint terrein op mijn top-keywords?"',
+        vragen: ['Op welke keywords winnen concurrenten momenteel terrein?', 'Welke content heeft kosten-dakdekker.nl die wij missen?', 'Waar zijn wij het meest kwetsbaar in de top 10?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av6" cx="50%" cy="35%"><stop offset="0%" stop-color="#78350f"/><stop offset="100%" stop-color="#3b1a06"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av6)"/>
@@ -2172,6 +2181,7 @@ const AGENTS = {
         naam: 'Plannings Agent', tag: 'Seizoen & timing',
         intro: 'Ik analyseer seizoenspatronen en adviseer wanneer je content moet publiceren.',
         placeholder: 'Bijv. "Wanneer piekt het verkeer voor dakisolatie?"',
+        vragen: ['Welke content moet ik nu publiceren voor de volgende seizoenspiek?', 'Wanneer moet stormschade-content live zijn om op tijd te ranken?', 'Welke keywords zijn nu opkomend in het seizoen?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av7" cx="50%" cy="35%"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#0d0b2a"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av7)"/>
@@ -2196,6 +2206,7 @@ const AGENTS = {
         naam: 'Kansen Scout', tag: 'Grootste groeikans',
         intro: 'Ik identificeer de grootste onbenutte groeikans en werk die volledig uit tot een concreet plan.',
         placeholder: 'Bijv. "Wat is de beste kans die we nu laten liggen?"',
+        vragen: ['Wat is de grootste onbenutte kans in de huidige data?', 'Welk keyword kunnen we het snelst naar een hogere positie krijgen?', 'Waar laten we nu leads liggen die we snel kunnen oppakken?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av8" cx="50%" cy="35%"><stop offset="0%" stop-color="#14532d"/><stop offset="100%" stop-color="#052e16"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av8)"/>
@@ -2214,6 +2225,7 @@ const AGENTS = {
         naam: 'Briefing Agent', tag: 'Content schrijfopdrachten',
         intro: 'Ik maak kant-en-klare content briefings: geef een keyword en ik lever een volledige schrijfopdracht.',
         placeholder: 'Bijv. "Maak een briefing voor dakisolatie kosten per m2"',
+        vragen: ['Maak een briefing voor het keyword met de meeste kans op een snelle ranking', 'Maak een briefing voor dakdekker Amsterdam', 'Welk bestaand keyword verdient een pagina-update met een volledige briefing?'],
         avatar: `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="av9" cx="50%" cy="35%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0d1f3c"/></radialGradient></defs>
           <circle cx="30" cy="30" r="30" fill="url(#av9)"/>
@@ -2266,6 +2278,9 @@ function renderKantoor() {
                         <div class="kantoor-back-av">${a.avatar}</div>
                         <div class="kantoor-back-naam">${a.naam}</div>
                     </div>
+                    <div class="kantoor-startvragen" id="kantoor-sv-${key}">
+                        ${(a.vragen || []).map(v => `<button class="kantoor-startvraag" onclick="stuurKantoorStartvraag('${key}', this)">${v}</button>`).join('')}
+                    </div>
                     <div class="kantoor-chat" id="kantoor-chat-${key}"></div>
                     <div class="kantoor-input-row">
                         <input class="kantoor-input" id="kantoor-input-${key}" placeholder="${a.placeholder}"
@@ -2297,6 +2312,14 @@ function renderKantoorChat(key) {
         `<div class="kantoor-msg-${m.role === 'user' ? 'user' : 'ai'}">${m.content.replace(/\n/g, '<br>')}</div>`
     ).join('');
     chatEl.scrollTop = chatEl.scrollHeight;
+    const sv = document.getElementById(`kantoor-sv-${key}`);
+    if (sv) sv.style.display = kantoorChats[key].length > 0 ? 'none' : 'flex';
+}
+
+function stuurKantoorStartvraag(key, btn) {
+    const input = document.getElementById(`kantoor-input-${key}`);
+    if (input) { input.value = btn.textContent; }
+    stuurKantoorBericht(key);
 }
 
 async function stuurKantoorBericht(key) {
