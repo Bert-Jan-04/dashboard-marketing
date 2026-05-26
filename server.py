@@ -675,7 +675,7 @@ VOLLEDIGE DASHBOARDDATA:
 
 {alle_data_blok}{suggestie_instructie}"""
 
-    if kantoor_modus:
+    if kantoor_modus and tab not in ('kansen', 'briefing'):
         expertise_per_agent = {
             "seo": """Je bent een SEO-specialist met 10 jaar ervaring in leadgen-sites voor de bouw- en installatiebranche.
 
