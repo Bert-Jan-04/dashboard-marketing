@@ -659,10 +659,10 @@
                     <thead>
                         <tr>
                             <th>Keyword</th>
-                            <th>Positie</th>
-                            <th>Clicks</th>
-                            <th>Impressies</th>
-                            <th>CTR</th>
+                            <th onclick="sortKwGsc('position')" style="cursor:pointer">Positie</th>
+                            <th onclick="sortKwGsc('clicks')" style="cursor:pointer">Clicks</th>
+                            <th onclick="sortKwGsc('impressions')" style="cursor:pointer">Impressies</th>
+                            <th onclick="sortKwGsc('ctr')" style="cursor:pointer">CTR</th>
                         </tr>
                     </thead>
                     <tbody id="kw-gsc-tabel"></tbody>
@@ -1182,6 +1182,10 @@ let tabelData = [];
 let gscSortKey = 'clicks';
 let gscPageSortKey = 'clicks';
 let tabelSortKey = 'clicks';
+let kwGscMatches = [];
+let kwGscSeed = '';
+let kwGscSortKey = 'clicks';
+let kwGscSortDir = -1;
 let huidigePagina = 'dashboard';
 
 // ── NAVIGATIE ──────────────────────────────────────────────
@@ -1423,6 +1427,30 @@ function renderKeywords(data) {
 
 function sortGSC(key) { gscSortKey = key; filterKeywords(); }
 
+function sortKwGsc(key) {
+    if (kwGscSortKey === key) { kwGscSortDir *= -1; } else { kwGscSortKey = key; kwGscSortDir = -1; }
+    renderKwGscTabel();
+}
+
+function renderKwGscTabel() {
+    const gscSectie = document.getElementById('kw-gsc-sectie');
+    if (!kwGscMatches.length) { gscSectie.style.display = 'none'; return; }
+    const sortLabels = { clicks: 'clicks', impressions: 'impressies', ctr: 'CTR', position: 'positie' };
+    const dir = kwGscSortDir === -1 ? 'hoog → laag' : 'laag → hoog';
+    document.getElementById('kw-gsc-sub').textContent = `${kwGscMatches.length} keywords in Search Console die "${kwGscSeed}" bevatten — gesorteerd op ${sortLabels[kwGscSortKey]} (${dir})`;
+    const sorted = [...kwGscMatches].sort((a, b) => kwGscSortDir * (b[kwGscSortKey] - a[kwGscSortKey]));
+    document.getElementById('kw-gsc-tabel').innerHTML = sorted.map(k => `
+        <tr>
+            <td><strong>${k.query}</strong></td>
+            <td>${positieBadge(Math.round(k.position))}</td>
+            <td>${k.clicks}</td>
+            <td>${k.impressions.toLocaleString('nl')}</td>
+            <td style="${k.ctr < 2 ? 'color:#f87171' : 'color:#02CE80'}">${k.ctr}%</td>
+        </tr>
+    `).join('');
+    gscSectie.style.display = 'block';
+}
+
 function renderGSCPages(data) {
     const sorted = [...data].sort((a, b) => b[gscPageSortKey] - a[gscPageSortKey]);
     document.getElementById('gsc-paginas-tabel').innerHTML = sorted.map(p => {
@@ -1573,22 +1601,11 @@ async function zoekKeywords() {
         }).join('');
 
         // GSC matches sectie
-        const gscSectie = document.getElementById('kw-gsc-sectie');
-        if (gscMatches.length > 0) {
-            document.getElementById('kw-gsc-sub').textContent = `${gscMatches.length} keywords in Search Console die "${seed}" bevatten — gesorteerd op clicks`;
-            document.getElementById('kw-gsc-tabel').innerHTML = gscMatches.map(k => `
-                <tr>
-                    <td><strong>${k.query}</strong></td>
-                    <td>${positieBadge(Math.round(k.position))}</td>
-                    <td>${k.clicks}</td>
-                    <td>${k.impressions.toLocaleString('nl')}</td>
-                    <td style="${k.ctr < 2 ? 'color:#f87171' : 'color:#02CE80'}">${k.ctr}%</td>
-                </tr>
-            `).join('');
-            gscSectie.style.display = 'block';
-        } else {
-            gscSectie.style.display = 'none';
-        }
+        kwGscMatches = gscMatches;
+        kwGscSeed = seed;
+        kwGscSortKey = 'clicks';
+        kwGscSortDir = -1;
+        renderKwGscTabel();
 
         document.getElementById('kw-resultaten').style.display = 'block';
     } finally {
