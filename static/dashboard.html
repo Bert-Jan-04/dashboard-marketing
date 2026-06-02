@@ -447,9 +447,9 @@
                     <thead>
                         <tr>
                             <th>Keyword</th>
-                            <th>Impr.</th>
-                            <th>Positie</th>
-                            <th>CTR</th>
+                            <th data-sort="impressions" onclick="sortCtrKansen('impressions')">Impr.</th>
+                            <th data-sort="position" onclick="sortCtrKansen('position')">Positie</th>
+                            <th data-sort="ctr" onclick="sortCtrKansen('ctr')">CTR</th>
                             <th>Actie</th>
                         </tr>
                     </thead>
@@ -465,9 +465,9 @@
                     <thead>
                         <tr>
                             <th>Keyword</th>
-                            <th>Impr.</th>
-                            <th>Positie</th>
-                            <th>Clicks</th>
+                            <th data-sort="impressions" onclick="sortPosKansen('impressions')">Impr.</th>
+                            <th data-sort="position" onclick="sortPosKansen('position')">Positie</th>
+                            <th data-sort="clicks" onclick="sortPosKansen('clicks')">Clicks</th>
                             <th>Actie</th>
                         </tr>
                     </thead>
@@ -527,10 +527,10 @@
                 <thead>
                     <tr>
                         <th>Pagina</th>
-                        <th onclick="sorteerTabel('clicks')">Clicks</th>
-                        <th onclick="sorteerTabel('ctr')">CTR</th>
-                        <th onclick="sorteerTabel('sessies')">Sessies</th>
-                        <th onclick="sorteerTabel('aanvragen')">Aanvragen</th>
+                        <th data-sort="clicks" onclick="sorteerTabel('clicks')">Clicks</th>
+                        <th data-sort="ctr" onclick="sorteerTabel('ctr')">CTR</th>
+                        <th data-sort="sessies" onclick="sorteerTabel('sessies')">Sessies</th>
+                        <th data-sort="aanvragen" onclick="sorteerTabel('aanvragen')">Aanvragen</th>
                     </tr>
                 </thead>
                 <tbody id="paginas-tabel">
@@ -575,10 +575,10 @@
                 <thead>
                     <tr>
                         <th>Keyword</th>
-                        <th onclick="sortGSC('clicks')">Clicks</th>
-                        <th onclick="sortGSC('impressions')">Impressions</th>
-                        <th onclick="sortGSC('ctr')">CTR</th>
-                        <th onclick="sortGSC('position')">Positie</th>
+                        <th data-sort="clicks" onclick="sortGSC('clicks')">Clicks</th>
+                        <th data-sort="impressions" onclick="sortGSC('impressions')">Impressions</th>
+                        <th data-sort="ctr" onclick="sortGSC('ctr')">CTR</th>
+                        <th data-sort="position" onclick="sortGSC('position')">Positie</th>
                     </tr>
                 </thead>
                 <tbody id="gsc-keywords-tabel">
@@ -594,10 +594,10 @@
                 <thead>
                     <tr>
                         <th>Pagina</th>
-                        <th onclick="sortGSCPages('clicks')">Clicks</th>
-                        <th onclick="sortGSCPages('impressions')">Impressions</th>
-                        <th onclick="sortGSCPages('ctr')">CTR</th>
-                        <th onclick="sortGSCPages('position')">Positie</th>
+                        <th data-sort="clicks" onclick="sortGSCPages('clicks')">Clicks</th>
+                        <th data-sort="impressions" onclick="sortGSCPages('impressions')">Impressions</th>
+                        <th data-sort="ctr" onclick="sortGSCPages('ctr')">CTR</th>
+                        <th data-sort="position" onclick="sortGSCPages('position')">Positie</th>
                     </tr>
                 </thead>
                 <tbody id="gsc-paginas-tabel">
@@ -646,14 +646,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Week</th>
+                        <th data-sort="week" onclick="sortTrends('week')">Week</th>
                         <th>Periode</th>
-                        <th>Clicks</th>
-                        <th>Impressions</th>
-                        <th>CTR</th>
-                        <th>Sessies</th>
-                        <th>Aanvragen</th>
-                        <th>Bounce%</th>
+                        <th data-sort="clicks" onclick="sortTrends('clicks')">Clicks</th>
+                        <th data-sort="impressions" onclick="sortTrends('impressions')">Impressions</th>
+                        <th data-sort="ctr" onclick="sortTrends('ctr')">CTR</th>
+                        <th data-sort="sessies" onclick="sortTrends('sessies')">Sessies</th>
+                        <th data-sort="aanvragen" onclick="sortTrends('aanvragen')">Aanvragen</th>
+                        <th data-sort="bounce" onclick="sortTrends('bounce')">Bounce%</th>
                     </tr>
                 </thead>
                 <tbody id="trends-tabel"></tbody>
@@ -721,10 +721,10 @@
                     <thead>
                         <tr>
                             <th>Keyword</th>
-                            <th onclick="sortKwGsc('position')" style="cursor:pointer">Positie</th>
-                            <th onclick="sortKwGsc('clicks')" style="cursor:pointer">Clicks</th>
-                            <th onclick="sortKwGsc('impressions')" style="cursor:pointer">Impressies</th>
-                            <th onclick="sortKwGsc('ctr')" style="cursor:pointer">CTR</th>
+                            <th data-sort="position" onclick="sortKwGsc('position')">Positie</th>
+                            <th data-sort="clicks" onclick="sortKwGsc('clicks')">Clicks</th>
+                            <th data-sort="impressions" onclick="sortKwGsc('impressions')">Impressies</th>
+                            <th data-sort="ctr" onclick="sortKwGsc('ctr')">CTR</th>
                         </tr>
                     </thead>
                     <tbody id="kw-gsc-tabel"></tbody>
@@ -770,9 +770,9 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Kanaal</th>
-                            <th>Sessies</th>
-                            <th>Conversies</th>
+                            <th data-sort="sessionDefaultChannelGrouping" onclick="sortGA4Kanalen('sessionDefaultChannelGrouping')">Kanaal</th>
+                            <th data-sort="sessions" onclick="sortGA4Kanalen('sessions')">Sessies</th>
+                            <th data-sort="conversions" onclick="sortGA4Kanalen('conversions')">Conversies</th>
                         </tr>
                     </thead>
                     <tbody id="ga4-kanalen-tabel">
@@ -788,7 +788,7 @@
                     <thead>
                         <tr>
                             <th>Landing page</th>
-                            <th>Aanvragen</th>
+                            <th data-sort="aanvragen" onclick="sortGA4Aanvragen('aanvragen')">Aanvragen</th>
                         </tr>
                     </thead>
                     <tbody id="ga4-aanvragen-tabel">
@@ -805,9 +805,9 @@
                 <thead>
                     <tr>
                         <th>Pagina</th>
-                        <th>Sessies</th>
-                        <th>Actieve gebruikers</th>
-                        <th>Bouncepercentage</th>
+                        <th data-sort="sessions" onclick="sortGA4Paginas('sessions')">Sessies</th>
+                        <th data-sort="activeUsers" onclick="sortGA4Paginas('activeUsers')">Actieve gebruikers</th>
+                        <th data-sort="bounceRate" onclick="sortGA4Paginas('bounceRate')">Bouncepercentage</th>
                     </tr>
                 </thead>
                 <tbody id="ga4-paginas-tabel">
@@ -848,11 +848,11 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Cluster</th>
-                            <th>Bezoekers</th>
-                            <th>Leads</th>
-                            <th>Conv%</th>
-                            <th>Vorige week</th>
+                            <th data-sort="cluster" onclick="sortClWeek('cluster')">Cluster</th>
+                            <th data-sort="bezoekers" onclick="sortClWeek('bezoekers')">Bezoekers</th>
+                            <th data-sort="leads" onclick="sortClWeek('leads')">Leads</th>
+                            <th data-sort="conv" onclick="sortClWeek('conv')">Conv%</th>
+                            <th data-sort="vw" onclick="sortClWeek('vw')">Vorige week</th>
                         </tr>
                     </thead>
                     <tbody id="cl-week-tabel">
@@ -867,10 +867,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Cluster</th>
-                            <th>Bezoekers</th>
-                            <th>Leads</th>
-                            <th>Conv%</th>
+                            <th data-sort="cluster" onclick="sortClCum('cluster')">Cluster</th>
+                            <th data-sort="bezoekers" onclick="sortClCum('bezoekers')">Bezoekers</th>
+                            <th data-sort="leads" onclick="sortClCum('leads')">Leads</th>
+                            <th data-sort="conv" onclick="sortClCum('conv')">Conv%</th>
                         </tr>
                     </thead>
                     <tbody id="cl-cum-tabel">
@@ -1002,10 +1002,10 @@
                 <thead>
                     <tr>
                         <th>Keyword</th>
-                        <th>Positie</th>
-                        <th>CTR</th>
-                        <th>Verwacht</th>
-                        <th>Potentieel extra clicks</th>
+                        <th data-sort="position" onclick="sortFeatured('position')">Positie</th>
+                        <th data-sort="ctr" onclick="sortFeatured('ctr')">CTR</th>
+                        <th data-sort="verwacht_ctr" onclick="sortFeatured('verwacht_ctr')">Verwacht</th>
+                        <th data-sort="potentieel_clicks" onclick="sortFeatured('potentieel_clicks')">Potentieel extra clicks</th>
                     </tr>
                 </thead>
                 <tbody id="featured-tabel">
@@ -1022,10 +1022,10 @@
                 <thead>
                     <tr>
                         <th>Pagina</th>
-                        <th>Positie</th>
-                        <th>Impr. nu</th>
-                        <th>Impr. vw</th>
-                        <th>Daling</th>
+                        <th data-sort="position" onclick="sortVerwaarloosde('position')">Positie</th>
+                        <th data-sort="impressions" onclick="sortVerwaarloosde('impressions')">Impr. nu</th>
+                        <th data-sort="impressions_prev" onclick="sortVerwaarloosde('impressions_prev')">Impr. vw</th>
+                        <th data-sort="daling_pct" onclick="sortVerwaarloosde('daling_pct')">Daling</th>
                     </tr>
                 </thead>
                 <tbody id="verwaarloosde-tabel">
@@ -1163,7 +1163,13 @@
             <div class="card-title">Concurrenten</div>
             <div class="card-sub">Gescande domeinen en hun dak-gerelateerde pagina's</div>
             <table>
-                <thead><tr><th>Naam</th><th>Domein</th><th style="text-align:right">Totaal pagina's</th><th style="text-align:right">Dak-pagina's</th><th style="text-align:right">Keywords gevonden</th></tr></thead>
+                <thead><tr>
+                    <th data-sort="naam" onclick="sortCcDomeinen('naam')">Naam</th>
+                    <th>Domein</th>
+                    <th data-sort="paginas_totaal" onclick="sortCcDomeinen('paginas_totaal')" style="text-align:right">Totaal pagina's</th>
+                    <th data-sort="dak_paginas" onclick="sortCcDomeinen('dak_paginas')" style="text-align:right">Dak-pagina's</th>
+                    <th data-sort="keywords_count" onclick="sortCcDomeinen('keywords_count')" style="text-align:right">Keywords gevonden</th>
+                </tr></thead>
                 <tbody id="cc-domeinen-tabel"><tr><td colspan="5" class="loading">Nog geen scan — klik op "Sitemap scannen"</td></tr></tbody>
             </table>
             <div style="margin-top:14px">
@@ -1177,11 +1183,11 @@
             <table>
                 <thead><tr>
                     <th>Keyword</th>
-                    <th style="text-align:right">Jouw positie</th>
-                    <th style="text-align:right">Jouw impressies</th>
-                    <th style="text-align:right">Jouw clicks</th>
+                    <th data-sort="onze_positie" onclick="sortCcDreigingen('onze_positie')" style="text-align:right">Jouw positie</th>
+                    <th data-sort="onze_impressies" onclick="sortCcDreigingen('onze_impressies')" style="text-align:right">Jouw impressies</th>
+                    <th data-sort="onze_clicks" onclick="sortCcDreigingen('onze_clicks')" style="text-align:right">Jouw clicks</th>
                     <th>Concurrenten</th>
-                    <th style="text-align:right">
+                    <th data-sort="dreiging_score" onclick="sortCcDreigingen('dreiging_score')" style="text-align:right">
                         <span class="tooltip-wrap">Score
                             <span class="tooltip-icon">i</span>
                             <span class="tooltip-box">
@@ -1273,6 +1279,44 @@ let kwGscSeed = '';
 let kwGscSortKey = 'clicks';
 let kwGscSortDir = -1;
 let huidigePagina = 'dashboard';
+
+// Opgeslagen arrays voor sorteerbare tabellen
+let ctrKansenData = [];
+let posKansenData = [];
+let clWeekData = [];
+let clCumData = [];
+
+// ── GENERIEKE SORTEERHULP ──────────────────────────────────────
+const _sortStates = {};
+
+function _updateSort(tableId, key) {
+    const cur = _sortStates[tableId];
+    const dir = (cur?.key === key) ? cur.dir * -1 : -1;
+    _sortStates[tableId] = { key, dir };
+    const tbody = document.getElementById(tableId);
+    if (!tbody) return;
+    const tbl = tbody.closest('table');
+    if (!tbl) return;
+    tbl.querySelectorAll('th[data-sort]').forEach(th => {
+        const active = th.dataset.sort === key;
+        th.classList.toggle('sorted', active);
+        let sa = th.querySelector('.sa');
+        if (!sa) { sa = document.createElement('span'); sa.className = 'sa'; th.appendChild(sa); }
+        sa.textContent = active ? (dir === -1 ? ' ▼' : ' ▲') : '';
+    });
+}
+
+function _applySort(arr, tableId, defaultKey = 'clicks') {
+    const { key = defaultKey, dir = -1 } = _sortStates[tableId] || {};
+    return [...arr].sort((a, b) => {
+        const va = a[key], vb = b[key];
+        if (va == null && vb == null) return 0;
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (typeof va === 'string') return dir * va.localeCompare(vb, 'nl');
+        return dir * (va - vb);
+    });
+}
 
 // ── NAVIGATIE ──────────────────────────────────────────────
 function navigeer(pagina) {
@@ -1409,12 +1453,12 @@ function vulTabel() {
 }
 
 function sorteerTabel(key) {
-    tabelSortKey = key;
+    _updateSort('paginas-tabel', key);
     renderTabel();
 }
 
 function renderTabel() {
-    const sorted = [...tabelData].sort((a, b) => b[tabelSortKey] - a[tabelSortKey]);
+    const sorted = _applySort(tabelData, 'paginas-tabel', 'clicks');
     const tbody = document.getElementById('paginas-tabel');
     tbody.innerHTML = sorted.map(r => `
         <tr style="cursor:pointer" onclick="selecteerPagina('${r.path}')">
@@ -1499,7 +1543,7 @@ function filterKeywords() {
 function renderKeywords(data) {
     const el = document.getElementById('gsc-kw-count');
     if (el) el.textContent = data.length + ' keywords';
-    const sorted = [...data].sort((a, b) => b[gscSortKey] - a[gscSortKey]);
+    const sorted = _applySort(data, 'gsc-keywords-tabel', 'clicks');
     document.getElementById('gsc-keywords-tabel').innerHTML = sorted.map(k => `
         <tr>
             <td>${k.query}</td>
@@ -1511,10 +1555,10 @@ function renderKeywords(data) {
     `).join('') || '<tr><td colspan="5" class="loading">Geen resultaten</td></tr>';
 }
 
-function sortGSC(key) { gscSortKey = key; filterKeywords(); }
+function sortGSC(key) { _updateSort('gsc-keywords-tabel', key); filterKeywords(); }
 
 function sortKwGsc(key) {
-    if (kwGscSortKey === key) { kwGscSortDir *= -1; } else { kwGscSortKey = key; kwGscSortDir = -1; }
+    _updateSort('kw-gsc-tabel', key);
     renderKwGscTabel();
 }
 
@@ -1524,7 +1568,7 @@ function renderKwGscTabel() {
     const sortLabels = { clicks: 'clicks', impressions: 'impressies', ctr: 'CTR', position: 'positie' };
     const dir = kwGscSortDir === -1 ? 'hoog → laag' : 'laag → hoog';
     document.getElementById('kw-gsc-sub').textContent = `${kwGscMatches.length} keywords in Search Console die "${kwGscSeed}" bevatten — gesorteerd op ${sortLabels[kwGscSortKey]} (${dir})`;
-    const sorted = [...kwGscMatches].sort((a, b) => kwGscSortDir * (b[kwGscSortKey] - a[kwGscSortKey]));
+    const sorted = _applySort(kwGscMatches, 'kw-gsc-tabel', 'clicks');
     document.getElementById('kw-gsc-tabel').innerHTML = sorted.map(k => `
         <tr>
             <td><strong>${k.query}</strong></td>
@@ -1538,7 +1582,7 @@ function renderKwGscTabel() {
 }
 
 function renderGSCPages(data) {
-    const sorted = [...data].sort((a, b) => b[gscPageSortKey] - a[gscPageSortKey]);
+    const sorted = _applySort(data, 'gsc-paginas-tabel', 'clicks');
     document.getElementById('gsc-paginas-tabel').innerHTML = sorted.map(p => {
         const path = p.page.replace('https://dakdekkersgids.nl', '') || '/';
         return `
@@ -1553,7 +1597,7 @@ function renderGSCPages(data) {
     }).join('');
 }
 
-function sortGSCPages(key) { gscPageSortKey = key; renderGSCPages(gscData.top_pages || []); }
+function sortGSCPages(key) { _updateSort('gsc-paginas-tabel', key); renderGSCPages(gscData.top_pages || []); }
 
 function positieBadge(pos) {
     if (pos <= 3) return `<span class="badge-green">#${pos}</span>`;
@@ -1573,36 +1617,45 @@ function vulAnalyticsPagina() {
     document.getElementById('ga4-kpi-bounce').textContent = (ga4Data.totals?.bounce_rate || 0) + '%';
     document.getElementById('ga4-kpi-bounce-sub').textContent = 'gemiddeld over alle paginas';
 
-    // Kanalen
-    document.getElementById('ga4-kanalen-tabel').innerHTML = (ga4Data.channels || []).map(k => `
+    renderGA4Kanalen();
+    renderGA4Aanvragen();
+    renderGA4Paginas();
+}
+
+function renderGA4Kanalen() {
+    const data = _applySort(ga4Data.channels || [], 'ga4-kanalen-tabel', 'sessions');
+    document.getElementById('ga4-kanalen-tabel').innerHTML = data.map(k => `
         <tr>
             <td>${k.sessionDefaultChannelGrouping}</td>
             <td>${k.sessions.toLocaleString('nl')}</td>
             <td>${k.conversions > 0 ? '<span class="text-green">' + k.conversions + '</span>' : '—'}</td>
-        </tr>
-    `).join('');
+        </tr>`).join('') || '<tr><td colspan="3" class="loading">Geen data</td></tr>';
+}
+function sortGA4Kanalen(key) { _updateSort('ga4-kanalen-tabel', key); renderGA4Kanalen(); }
 
-    // Offerteaanvragen
-    const aanvragen = ga4Data.offerteaanvragen?.deze_week || [];
-    document.getElementById('ga4-aanvragen-tabel').innerHTML = aanvragen.length
-        ? aanvragen.map(a => `
+function renderGA4Aanvragen() {
+    const data = _applySort(ga4Data.offerteaanvragen?.deze_week || [], 'ga4-aanvragen-tabel', 'aanvragen');
+    document.getElementById('ga4-aanvragen-tabel').innerHTML = data.length
+        ? data.map(a => `
             <tr>
                 <td><span style="color:#02CE80">${a.landing_page}</span></td>
                 <td><span class="badge-green">${a.aanvragen}</span></td>
-            </tr>
-        `).join('')
+            </tr>`).join('')
         : '<tr><td colspan="2" class="loading">Geen aanvragen gevonden</td></tr>';
+}
+function sortGA4Aanvragen(key) { _updateSort('ga4-aanvragen-tabel', key); renderGA4Aanvragen(); }
 
-    // Top pagina's
-    document.getElementById('ga4-paginas-tabel').innerHTML = (ga4Data.top_pages || []).map(p => `
+function renderGA4Paginas() {
+    const data = _applySort(ga4Data.top_pages || [], 'ga4-paginas-tabel', 'sessions');
+    document.getElementById('ga4-paginas-tabel').innerHTML = data.map(p => `
         <tr>
             <td><span style="color:#02CE80">${p.pagePath}</span></td>
             <td>${p.sessions.toLocaleString('nl')}</td>
             <td>${p.activeUsers.toLocaleString('nl')}</td>
             <td>${(p.bounceRate * 100).toFixed(1)}%</td>
-        </tr>
-    `).join('');
+        </tr>`).join('') || '<tr><td colspan="4" class="loading">Geen data</td></tr>';
 }
+function sortGA4Paginas(key) { _updateSort('ga4-paginas-tabel', key); renderGA4Paginas(); }
 
 // ── VERNIEUWEN ───────────────────────────────────────────────
 async function refreshData() {
@@ -1754,33 +1807,33 @@ function vulTrendsPagina() {
     });
 
     vulPositieHistoriek();
+    renderTrendsTabel();
+}
 
-    // Tabel
-    const tbody = document.getElementById('trends-tabel');
-    tbody.innerHTML = trendsData.map((w, i) => {
-        const prev = trendsData[i - 1];
-        const diff = (val, prevVal) => {
-            if (!prev) return '';
-            const d = val - prevVal;
-            if (d === 0) return '<span class="text-muted">—</span>';
-            return d > 0
-                ? `<span class="text-green">▲${d}</span>`
-                : `<span class="text-red">▼${Math.abs(d)}</span>`;
-        };
+function renderTrendsTabel() {
+    const flat = (trendsData || []).map(w => ({
+        week: w.week, periode: w.start + ' t/m ' + w.end,
+        clicks: w.gsc.clicks, impressions: w.gsc.impressions, ctr: w.gsc.ctr,
+        sessies: w.ga4.sessions, aanvragen: w.ga4.offerteaanvragen, bounce: w.ga4.bounce_rate
+    }));
+    const sorted = _applySort(flat, 'trends-tabel', 'clicks');
+    const weekMap = Object.fromEntries((trendsData || []).map(w => [w.week, w]));
+    document.getElementById('trends-tabel').innerHTML = sorted.map(r => {
+        const w = weekMap[r.week];
         return `
             <tr>
                 <td><strong>${w.week}</strong></td>
-                <td style="color:#828282;font-size:12px">${w.start} t/m ${w.end}</td>
-                <td>${w.gsc.clicks} ${diff(w.gsc.clicks, prev?.gsc.clicks || 0)}</td>
-                <td>${w.gsc.impressions.toLocaleString('nl')} ${diff(w.gsc.impressions, prev?.gsc.impressions || 0)}</td>
+                <td style="color:var(--text-muted);font-size:12px">${w.start} t/m ${w.end}</td>
+                <td>${w.gsc.clicks}</td>
+                <td>${w.gsc.impressions.toLocaleString('nl')}</td>
                 <td>${w.gsc.ctr}%</td>
-                <td>${w.ga4.sessions.toLocaleString('nl')} ${diff(w.ga4.sessions, prev?.ga4.sessions || 0)}</td>
-                <td>${w.ga4.offerteaanvragen > 0 ? '<span class="badge-green">' + w.ga4.offerteaanvragen + '</span>' : '—'} ${diff(w.ga4.offerteaanvragen, prev?.ga4.offerteaanvragen || 0)}</td>
+                <td>${w.ga4.sessions.toLocaleString('nl')}</td>
+                <td>${w.ga4.offerteaanvragen > 0 ? '<span class="badge-green">' + w.ga4.offerteaanvragen + '</span>' : '—'}</td>
                 <td>${w.ga4.bounce_rate}%</td>
-            </tr>
-        `;
+            </tr>`;
     }).join('');
 }
+function sortTrends(key) { _updateSort('trends-tabel', key); renderTrendsTabel(); }
 
 
 // ── CLUSTERS PAGINA ──────────────────────────────────────────
@@ -1816,41 +1869,18 @@ function vulClustersPagina() {
     document.getElementById('cl-week-periode').textContent = ws && we ? `${ws} t/m ${we}` : '';
     document.getElementById('cl-cum-periode').textContent = `20 maart t/m ${we || 'nu'}`;
 
-    // Deze week tabel
-    const weekRows = Object.entries(cl.deze_week || {});
-    document.getElementById('cl-week-tabel').innerHTML = weekRows.length
-        ? weekRows.map(([cluster, d]) => {
-            const conv = d.bezoekers > 0 ? (d.leads / d.bezoekers * 100).toFixed(1) + '%' : '—';
-            const vw = (cl.vorige_week || {})[cluster]?.leads ?? '—';
-            const leadsEl = d.leads > 0
-                ? `<span class="badge-green">${d.leads}</span>`
-                : `<span class="text-muted">0</span>`;
-            return `<tr>
-                <td><span style="color:#02CE80">${cluster}</span></td>
-                <td>${d.bezoekers}</td>
-                <td>${leadsEl}</td>
-                <td>${conv}</td>
-                <td><span class="text-muted">${vw}</span></td>
-            </tr>`;
-        }).join('')
-        : '<tr><td colspan="5" class="loading">Geen data</td></tr>';
-
-    // Cumulatief tabel
-    const cumRows = Object.entries(cl.cumulatief || {});
-    document.getElementById('cl-cum-tabel').innerHTML = cumRows.length
-        ? cumRows.map(([cluster, d]) => {
-            const conv = d.bezoekers > 0 ? (d.leads / d.bezoekers * 100).toFixed(1) + '%' : '—';
-            const leadsEl = d.leads > 0
-                ? `<span class="badge-green">${d.leads}</span>`
-                : `<span class="text-muted">0</span>`;
-            return `<tr>
-                <td><span style="color:#02CE80">${cluster}</span></td>
-                <td>${d.bezoekers}</td>
-                <td>${leadsEl}</td>
-                <td>${conv}</td>
-            </tr>`;
-        }).join('')
-        : '<tr><td colspan="4" class="loading">Geen data</td></tr>';
+    // Clusters data opslaan voor sortering
+    clWeekData = Object.entries(cl.deze_week || {}).map(([cluster, d]) => ({
+        cluster, bezoekers: d.bezoekers, leads: d.leads,
+        conv: d.bezoekers > 0 ? d.leads / d.bezoekers * 100 : 0,
+        vw: (cl.vorige_week || {})[cluster]?.leads ?? null
+    }));
+    clCumData = Object.entries(cl.cumulatief || {}).map(([cluster, d]) => ({
+        cluster, bezoekers: d.bezoekers, leads: d.leads,
+        conv: d.bezoekers > 0 ? d.leads / d.bezoekers * 100 : 0
+    }));
+    renderClWeek();
+    renderClCum();
 
     // Directe leads per pagina
     document.getElementById('cl-pagina-tabel').innerHTML = (dl.per_pagina || []).length
@@ -1874,6 +1904,33 @@ function vulClustersPagina() {
         }).join('')
         : '<tr><td colspan="3" class="text-muted">Geen data</td></tr>';
 }
+
+function renderClWeek() {
+    const sorted = _applySort(clWeekData, 'cl-week-tabel', 'leads');
+    document.getElementById('cl-week-tabel').innerHTML = sorted.length
+        ? sorted.map(r => `<tr>
+            <td><span style="color:#02CE80">${r.cluster}</span></td>
+            <td>${r.bezoekers}</td>
+            <td>${r.leads > 0 ? '<span class="badge-green">' + r.leads + '</span>' : '<span class="text-muted">0</span>'}</td>
+            <td>${r.bezoekers > 0 ? r.conv.toFixed(1) + '%' : '—'}</td>
+            <td><span class="text-muted">${r.vw ?? '—'}</span></td>
+        </tr>`).join('')
+        : '<tr><td colspan="5" class="loading">Geen data</td></tr>';
+}
+function sortClWeek(key) { _updateSort('cl-week-tabel', key); renderClWeek(); }
+
+function renderClCum() {
+    const sorted = _applySort(clCumData, 'cl-cum-tabel', 'leads');
+    document.getElementById('cl-cum-tabel').innerHTML = sorted.length
+        ? sorted.map(r => `<tr>
+            <td><span style="color:#02CE80">${r.cluster}</span></td>
+            <td>${r.bezoekers}</td>
+            <td>${r.leads > 0 ? '<span class="badge-green">' + r.leads + '</span>' : '<span class="text-muted">0</span>'}</td>
+            <td>${r.bezoekers > 0 ? r.conv.toFixed(1) + '%' : '—'}</td>
+        </tr>`).join('')
+        : '<tr><td colspan="4" class="loading">Geen data</td></tr>';
+}
+function sortClCum(key) { _updateSort('cl-cum-tabel', key); renderClCum(); }
 
 // ── GSC CONTENT-PAGINA STATUS ────────────────────────────────
 function vulContentPagesStatus() {
@@ -1919,9 +1976,16 @@ function vulKansen() {
         return;
     }
     sectie.style.display = 'grid';
+    ctrKansenData = ctrKansen;
+    posKansenData = posKansen;
+    renderCtrKansen();
+    renderPosKansen();
+}
 
-    document.getElementById('kansen-ctr-tabel').innerHTML = ctrKansen.length
-        ? ctrKansen.map(k => `
+function renderCtrKansen() {
+    const sorted = _applySort(ctrKansenData, 'kansen-ctr-tabel', 'impressions');
+    document.getElementById('kansen-ctr-tabel').innerHTML = sorted.length
+        ? sorted.map(k => `
             <tr>
                 <td>${k.query}</td>
                 <td>${k.impressions}</td>
@@ -1930,9 +1994,14 @@ function vulKansen() {
                 <td><span class="badge-yellow">Title/meta</span></td>
             </tr>`).join('')
         : '<tr><td colspan="5" class="text-muted">Geen kansen gevonden</td></tr>';
+}
 
-    document.getElementById('kansen-pos-tabel').innerHTML = posKansen.length
-        ? posKansen.map(k => `
+function sortCtrKansen(key) { _updateSort('kansen-ctr-tabel', key); renderCtrKansen(); }
+
+function renderPosKansen() {
+    const sorted = _applySort(posKansenData, 'kansen-pos-tabel', 'impressions');
+    document.getElementById('kansen-pos-tabel').innerHTML = sorted.length
+        ? sorted.map(k => `
             <tr>
                 <td>${k.query}</td>
                 <td>${k.impressions}</td>
@@ -1942,6 +2011,8 @@ function vulKansen() {
             </tr>`).join('')
         : '<tr><td colspan="5" class="text-muted">Geen kansen gevonden</td></tr>';
 }
+
+function sortPosKansen(key) { _updateSort('kansen-pos-tabel', key); renderPosKansen(); }
 
 async function stuurMail() {
     // Beheer beide knoppen (header + clusters pagina)
@@ -2128,7 +2199,11 @@ function vulROI() {
 }
 
 function vulFeaturedSnippets() {
-    const data  = gscData?.featured_snippet_kansen || [];
+    renderFeaturedSnippets();
+}
+
+function renderFeaturedSnippets() {
+    const data = _applySort(gscData?.featured_snippet_kansen || [], 'featured-tabel', 'potentieel_clicks');
     const tbody = document.getElementById('featured-tabel');
     if (!data.length) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Geen kansen gevonden met huidige data</td></tr>';
@@ -2144,8 +2219,14 @@ function vulFeaturedSnippets() {
         </tr>`).join('');
 }
 
+function sortFeatured(key) { _updateSort('featured-tabel', key); renderFeaturedSnippets(); }
+
 function vulVerwaarloosde() {
-    const data  = gscData?.verwaarloosde_paginas || [];
+    renderVerwaarloosde();
+}
+
+function renderVerwaarloosde() {
+    const data = _applySort(gscData?.verwaarloosde_paginas || [], 'verwaarloosde-tabel', 'impressions_prev');
     const tbody = document.getElementById('verwaarloosde-tabel');
     if (!data.length) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Geen dalende pagina\'s gevonden</td></tr>';
@@ -2160,6 +2241,8 @@ function vulVerwaarloosde() {
             <td><span class="badge-red">-${p.daling_pct}%</span></td>
         </tr>`).join('');
 }
+
+function sortVerwaarloosde(key) { _updateSort('verwaarloosde-tabel', key); renderVerwaarloosde(); }
 
 laadData();
 
@@ -2848,25 +2931,8 @@ function vulConcurrentenPagina() {
     document.getElementById('cc-meerdere').textContent = (sam.meerdere_concurrenten || 0).toLocaleString('nl-NL');
     document.getElementById('cc-gegenereerd').textContent = 'scan: ' + (concurrentData.gegenereerd || '?');
 
-    document.getElementById('cc-domeinen-tabel').innerHTML = concurrentData.concurrenten.map(c => `
-        <tr>
-            <td>${c.naam}</td>
-            <td style="color:#828282">${c.domein}</td>
-            <td style="text-align:right">${(c.paginas_totaal || 0).toLocaleString('nl-NL')}</td>
-            <td style="text-align:right">${(c.dak_paginas || 0).toLocaleString('nl-NL')}</td>
-            <td style="text-align:right">${(c.keywords || []).length}</td>
-        </tr>`).join('');
-
-    const dreigingKleur = s => s >= 60 ? '#f87171' : s >= 30 ? '#fbbf24' : '#828282';
-    document.getElementById('cc-dreigingen-tabel').innerHTML = (concurrentData.dreigingen || []).map(d => `
-        <tr>
-            <td>${d.keyword}</td>
-            <td style="text-align:right;color:${d.onze_positie ? '#fff' : '#555'}">${d.onze_positie ? '#' + d.onze_positie : '—'}</td>
-            <td style="text-align:right">${(d.onze_impressies || 0).toLocaleString('nl-NL')}</td>
-            <td style="text-align:right">${(d.onze_clicks || 0).toLocaleString('nl-NL')}</td>
-            <td style="color:#828282;font-size:12px">${(d.concurrenten || []).join(', ')}</td>
-            <td style="text-align:right;color:${dreigingKleur(d.dreiging_score)};font-weight:600">${d.dreiging_score}</td>
-        </tr>`).join('');
+    renderCcDomeinen();
+    renderCcDreigingen();
 }
 
 async function startConcurrentScan(btn) {
@@ -2897,6 +2963,39 @@ renderHomepage();
 haalSignaalOp('dashboard');
 
 // ── THEMA ────────────────────────────────────────────────────
+function renderCcDomeinen() {
+    if (!concurrentData?.concurrenten) return;
+    const data = _applySort(
+        concurrentData.concurrenten.map(c => ({ ...c, keywords_count: (c.keywords || []).length })),
+        'cc-domeinen-tabel', 'dak_paginas'
+    );
+    document.getElementById('cc-domeinen-tabel').innerHTML = data.map(c => `
+        <tr>
+            <td>${c.naam}</td>
+            <td style="color:var(--text-muted)">${c.domein}</td>
+            <td style="text-align:right">${(c.paginas_totaal || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${(c.dak_paginas || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${c.keywords_count}</td>
+        </tr>`).join('');
+}
+function sortCcDomeinen(key) { _updateSort('cc-domeinen-tabel', key); renderCcDomeinen(); }
+
+function renderCcDreigingen() {
+    if (!concurrentData) return;
+    const data = _applySort(concurrentData.dreigingen || [], 'cc-dreigingen-tabel', 'dreiging_score');
+    const dreigingKleur = s => s >= 60 ? '#f87171' : s >= 30 ? '#fbbf24' : 'var(--text-muted)';
+    document.getElementById('cc-dreigingen-tabel').innerHTML = data.map(d => `
+        <tr>
+            <td>${d.keyword}</td>
+            <td style="text-align:right;color:${d.onze_positie ? 'var(--text)' : 'var(--text-faint)'}">${d.onze_positie ? '#' + d.onze_positie : '—'}</td>
+            <td style="text-align:right">${(d.onze_impressies || 0).toLocaleString('nl-NL')}</td>
+            <td style="text-align:right">${(d.onze_clicks || 0).toLocaleString('nl-NL')}</td>
+            <td style="color:var(--text-muted);font-size:12px">${(d.concurrenten || []).join(', ')}</td>
+            <td style="text-align:right;color:${dreigingKleur(d.dreiging_score)};font-weight:600">${d.dreiging_score}</td>
+        </tr>`).join('');
+}
+function sortCcDreigingen(key) { _updateSort('cc-dreigingen-tabel', key); renderCcDreigingen(); }
+
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('thema', isLight ? 'light' : 'dark');
