@@ -14,7 +14,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 from rules import (
     CREDENTIALS_FILE, PROPERTY_ID,
-    conversie_filter, get_content_pages_from_gsc,
+    get_content_pages_from_gsc,
     is_content_page,
 )
 
@@ -64,26 +64,16 @@ def parse_report(response, dimensions, metrics):
 
 def get_offerteaanvragen(client, start, end, valid_pages=None):
     """
-    Sessies die begonnen op een content-landingspagina EN /bedankt/ bezochten.
-    Gebruikt conversie_filter met de GSC-contentpagina whitelist.
+    dakdekker_lead events per landingPage, gefilterd op content-pagina's.
     """
-    bedankt_filter = FilterExpression(filter=Filter(
-        field_name="pagePath",
-        string_filter=Filter.StringFilter(
-            match_type=Filter.StringFilter.MatchType.CONTAINS,
-            value="/bedankt"
-        )
-    ))
+    from rules import lead_filter
     request = RunReportRequest(
         property=f"properties/{PROPERTY_ID}",
         dimensions=[Dimension(name="landingPage")],
-        metrics=[Metric(name="sessions")],
+        metrics=[Metric(name="eventCount")],
         date_ranges=[DateRange(start_date=start.isoformat(), end_date=end.isoformat())],
-        dimension_filter=conversie_filter(
-            valid_pages=valid_pages,
-            extra_expressions=[bedankt_filter]
-        ),
-        order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="sessions"), desc=True)],
+        dimension_filter=lead_filter(valid_pages=valid_pages),
+        order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="eventCount"), desc=True)],
         limit=20
     )
     response = client.run_report(request)
