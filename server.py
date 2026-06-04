@@ -7,7 +7,7 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import sqlite3
@@ -20,6 +20,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
 
 # ── GEBRUIKERSDATABASE ───────────────────────────────────────
@@ -85,6 +86,7 @@ def login():
         naam = request.form.get("gebruikersnaam", "").strip()
         ww   = request.form.get("wachtwoord", "")
         if controleer_login(naam, ww):
+            session.permanent = True
             session["gebruiker"] = naam
             return redirect("/")
         return redirect("/login?fout=1")
@@ -103,6 +105,7 @@ def registreer():
             return redirect("/registreer?fout=match")
         if not maak_account(naam, ww):
             return redirect("/registreer?fout=bestaat")
+        session.permanent = True
         session["gebruiker"] = naam
         return redirect("/")
     return send_from_directory("static", "registreer.html")
