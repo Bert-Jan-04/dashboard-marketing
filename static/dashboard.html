@@ -1056,24 +1056,29 @@
     <!-- CLARITY -->
     <div class="page" id="page-clarity">
 
+        <div class="card" style="margin-bottom:20px" id="cl-actie-kaart">
+            <div class="card-title">Aanbevolen actie</div>
+            <div id="cl-acties"><span style="color:#828282;font-size:13px">Laden...</span></div>
+        </div>
+
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#0078d4"></span>Microsoft Clarity</div>
                 <div class="kpi-label">Sessies</div>
                 <div class="kpi-value" id="cl-sessies">—</div>
-                <div class="kpi-change text-muted" id="cl-gebruikers-sub">afgelopen 7 dagen</div>
+                <div class="kpi-change text-muted" id="cl-sessies-delta">afgelopen 7 dagen</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#a78bfa"></span>Microsoft Clarity</div>
                 <div class="kpi-label">Unieke gebruikers</div>
                 <div class="kpi-value" id="cl-gebruikers">—</div>
-                <div class="kpi-change text-muted">afgelopen 7 dagen</div>
+                <div class="kpi-change text-muted" id="cl-gebruikers-delta">afgelopen 7 dagen</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#02CE80"></span>Microsoft Clarity</div>
                 <div class="kpi-label">Scroll diepte</div>
                 <div class="kpi-value" id="cl-scroll">—</div>
-                <div class="kpi-change text-muted">gemiddeld per sessie</div>
+                <div class="kpi-change text-muted" id="cl-scroll-delta">gemiddeld per sessie</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#fbbf24"></span>Microsoft Clarity</div>
@@ -1088,25 +1093,25 @@
                 <div class="kpi-source"><span class="source-dot" style="background:#f87171"></span>Frustratie-signaal</div>
                 <div class="kpi-label">Dead clicks</div>
                 <div class="kpi-value" id="cl-dead">—</div>
-                <div class="kpi-change text-muted">% van sessies</div>
+                <div class="kpi-change text-muted" id="cl-dead-delta">% van sessies</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#fb923c"></span>Frustratie-signaal</div>
                 <div class="kpi-label">Quickback</div>
                 <div class="kpi-value" id="cl-quickback">—</div>
-                <div class="kpi-change text-muted">% van sessies</div>
+                <div class="kpi-change text-muted" id="cl-quickback-delta">% van sessies</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#f43f5e"></span>Frustratie-signaal</div>
                 <div class="kpi-label">Rage clicks</div>
                 <div class="kpi-value" id="cl-rage">—</div>
-                <div class="kpi-change text-muted">% van sessies</div>
+                <div class="kpi-change text-muted" id="cl-rage-delta">% van sessies</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-source"><span class="source-dot" style="background:#94a3b8"></span>Frustratie-signaal</div>
                 <div class="kpi-label">Script errors</div>
                 <div class="kpi-value" id="cl-script">—</div>
-                <div class="kpi-change text-muted">% van sessies</div>
+                <div class="kpi-change text-muted" id="cl-script-delta">% van sessies</div>
             </div>
         </div>
 
@@ -2825,26 +2830,51 @@ function clarityBar(pct, kleur) {
     </div>`;
 }
 
+function clarityDelta(huidig, vorig, hogerIsBeter = true) {
+    if (vorig == null || vorig === 0) return null;
+    const diff = huidig - vorig;
+    const pct  = Math.round(diff / vorig * 100);
+    if (pct === 0) return { tekst: '— gelijk aan vorige week', kleur: '#555' };
+    const stijgt = diff > 0;
+    const positief = hogerIsBeter ? stijgt : !stijgt;
+    const pijl = stijgt ? '↑' : '↓';
+    const kleur = positief ? '#02CE80' : '#f87171';
+    return { tekst: `${pijl} ${Math.abs(pct)}% t.o.v. vorige week`, kleur };
+}
+
+function zetDelta(id, huidig, vorig, hogerIsBeter = true) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const d = clarityDelta(huidig, vorig, hogerIsBeter);
+    if (d) { el.textContent = d.tekst; el.style.color = d.kleur; }
+}
+
 function vulClarityPagina() {
     const leeg = id => { document.getElementById(id).textContent = '—'; };
     if (!clarityData || !clarityData.metrics) {
         ['cl-sessies','cl-gebruikers','cl-scroll','cl-actief','cl-dead','cl-quickback','cl-rage','cl-script'].forEach(leeg);
         document.getElementById('cl-signalen').innerHTML =
             '<p style="color:#828282;font-size:13px">Geen Clarity data — klik op Vernieuwen om data op te halen.</p>';
+        document.getElementById('cl-acties').innerHTML =
+            '<p style="color:#828282;font-size:13px">Geen data beschikbaar.</p>';
         document.getElementById('cl-apparaten').innerHTML = '';
         document.getElementById('cl-verwijzers').innerHTML = '';
         document.getElementById('cl-paginas').innerHTML = '';
         return;
     }
     const m = clarityData.metrics;
+    const v = clarityData.vorig || {};
 
     // Engagement KPI's
     document.getElementById('cl-sessies').textContent   = (m.sessies || 0).toLocaleString('nl-NL');
     document.getElementById('cl-gebruikers').textContent = (m.gebruikers || 0).toLocaleString('nl-NL');
+    zetDelta('cl-sessies-delta',    m.sessies,    v.sessies);
+    zetDelta('cl-gebruikers-delta', m.gebruikers, v.gebruikers);
 
     const scrollEl = document.getElementById('cl-scroll');
     scrollEl.textContent = (m.scroll_diepte || 0) + '%';
     scrollEl.style.color = m.scroll_diepte < 35 ? '#fbbf24' : m.scroll_diepte >= 55 ? '#02CE80' : '#fff';
+    zetDelta('cl-scroll-delta', m.scroll_diepte, v.scroll_diepte);
 
     document.getElementById('cl-actief').textContent = formatSeconden(m.actieve_tijd_sec || 0);
     if (m.totale_tijd_sec) {
@@ -2856,18 +2886,44 @@ function vulClarityPagina() {
     const deadEl = document.getElementById('cl-dead');
     deadEl.textContent = (m.dead_click_pct || 0) + '%';
     deadEl.style.color = m.dead_click_pct > 15 ? '#f87171' : m.dead_click_pct > 8 ? '#fbbf24' : '#02CE80';
+    zetDelta('cl-dead-delta', m.dead_click_pct, v.dead_click_pct, false);
 
     const qbEl = document.getElementById('cl-quickback');
     qbEl.textContent = (m.quickback_pct || 0) + '%';
     qbEl.style.color = m.quickback_pct > 10 ? '#f87171' : m.quickback_pct > 5 ? '#fbbf24' : '#02CE80';
+    zetDelta('cl-quickback-delta', m.quickback_pct, v.quickback_pct, false);
 
     const rageEl = document.getElementById('cl-rage');
     rageEl.textContent = (m.rage_click_pct || 0) + '%';
     rageEl.style.color = m.rage_click_pct > 3 ? '#f87171' : m.rage_click_pct > 1 ? '#fbbf24' : '#02CE80';
+    zetDelta('cl-rage-delta', m.rage_click_pct, v.rage_click_pct, false);
 
     const scriptEl = document.getElementById('cl-script');
     scriptEl.textContent = (m.script_error_pct || 0) + '%';
     scriptEl.style.color = m.script_error_pct > 5 ? '#f87171' : m.script_error_pct > 1 ? '#fbbf24' : '#02CE80';
+    zetDelta('cl-script-delta', m.script_error_pct, v.script_error_pct, false);
+
+    // Aanbevolen acties
+    const acties = [];
+    if (m.dead_click_pct > 10)
+        acties.push({ icoon: '🖱️', tekst: `<strong>Controleer klikbare elementen</strong> — ${m.dead_click_pct}% dead clicks. Bekijk in Clarity heatmaps op welke elementen gebruikers klikken zonder reactie (vaak mobiele CTA's of afbeeldingen).` });
+    if (m.quickback_pct > 5)
+        acties.push({ icoon: '↩️', tekst: `<strong>Verbeter de zoekintentie-match</strong> — ${m.quickback_pct}% quickback. Bekijk via Clarity welke pagina's bezoekers direct verlaten en pas de metabeschrijving of H1 aan.` });
+    if (m.scroll_diepte < 40)
+        acties.push({ icoon: '📜', tekst: `<strong>Zet je CTA hoger op de pagina</strong> — scroll diepte is slechts ${m.scroll_diepte}%. De meeste bezoekers zien je offerteknop of contactformulier waarschijnlijk niet.` });
+    if (m.rage_click_pct > 1)
+        acties.push({ icoon: '😤', tekst: `<strong>Onderzoek rage clicks</strong> — ${m.rage_click_pct}% van sessies. Dit duidt op een kapot of traag interactief element. Open Clarity en filter op rage click-sessies.` });
+    if (m.script_error_pct > 2)
+        acties.push({ icoon: '⚠️', tekst: `<strong>Fix JavaScript-fouten</strong> — ${m.script_error_pct}% script errors. Open de browser-console op de betreffende pagina's.` });
+    if (!acties.length)
+        acties.push({ icoon: '✅', tekst: `<strong>Geen urgente acties</strong> — alle frustratie-signalen zitten onder de drempelwaarden. Blijf de scroll diepte en actieve tijd bewaken als vroege indicatoren.` });
+
+    document.getElementById('cl-acties').innerHTML = acties.map(a =>
+        `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #1a1a1a">
+            <span style="font-size:18px;flex-shrink:0">${a.icoon}</span>
+            <span style="font-size:13px;color:#c0c0c0;line-height:1.6">${a.tekst}</span>
+        </div>`
+    ).join('');
 
     // Apparaten
     const app = (m.apparaten || []).sort((a, b) => b.sessies - a.sessies);

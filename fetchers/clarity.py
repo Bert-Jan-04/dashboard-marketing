@@ -61,40 +61,53 @@ def parse_metrics(raw):
     return out
 
 
-def main():
-    if not TOKEN or not PROJECT_ID:
-        print("CLARITY_API_TOKEN of CLARITY_PROJECT_ID ontbreekt in .env")
-        return
-
-    end   = date.today()
-    start = end - timedelta(days=3)
+def fetch_period(start, end):
     params = {
         "projectId": PROJECT_ID,
         "startDate": start.strftime("%Y-%m-%d"),
         "endDate":   end.strftime("%Y-%m-%d"),
     }
+    raw = fetch("project-live-insights", params)
+    return parse_metrics(raw)
 
-    print(f"Clarity data ophalen: {params['startDate']} t/m {params['endDate']}")
+
+def main():
+    if not TOKEN or not PROJECT_ID:
+        print("CLARITY_API_TOKEN of CLARITY_PROJECT_ID ontbreekt in .env")
+        return
+
+    today      = date.today()
+    end_huidig = today
+    start_huidig = today - timedelta(days=7)
+    end_vorig    = today - timedelta(days=8)
+    start_vorig  = today - timedelta(days=14)
+
+    print(f"Clarity huidig: {start_huidig} t/m {end_huidig}")
+    print(f"Clarity vorig:  {start_vorig} t/m {end_vorig}")
     try:
-        raw = fetch("project-live-insights", params)
+        metrics_huidig = fetch_period(start_huidig, end_huidig)
+        metrics_vorig  = fetch_period(start_vorig, end_vorig)
     except Exception as e:
         print(f"Clarity API fout (bestaande data behouden): {e}")
         return
-    metrics = parse_metrics(raw)
 
     data = {
-        "periode": {"start": params["startDate"], "eind": params["endDate"]},
-        "metrics": metrics,
-        "gegenereerd": date.today().isoformat(),
+        "periode": {
+            "start": start_huidig.strftime("%Y-%m-%d"),
+            "eind":  end_huidig.strftime("%Y-%m-%d"),
+        },
+        "metrics": metrics_huidig,
+        "vorig":   metrics_vorig,
+        "gegenereerd": today.isoformat(),
     }
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-    print(f"Klaar! {metrics.get('sessies', 0)} sessies | "
-          f"scroll {metrics.get('scroll_diepte', 0)}% | "
-          f"dead clicks {metrics.get('dead_click_pct', 0)}% | "
-          f"quickback {metrics.get('quickback_pct', 0)}%")
+    print(f"Klaar! {metrics_huidig.get('sessies', 0)} sessies | "
+          f"scroll {metrics_huidig.get('scroll_diepte', 0)}% | "
+          f"dead clicks {metrics_huidig.get('dead_click_pct', 0)}% | "
+          f"quickback {metrics_huidig.get('quickback_pct', 0)}%")
     print(f"Data opgeslagen in {DATA_FILE}")
 
 
