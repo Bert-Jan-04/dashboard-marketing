@@ -167,6 +167,25 @@ os.makedirs(DATA_DIR, exist_ok=True)
 USERS_DB = os.path.join(DATA_DIR, "users.db")
 init_db()
 
+SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
+OPENAI_MODELLEN = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "o3-mini"]
+
+def laad_settings():
+    try:
+        with open(SETTINGS_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def sla_settings_op(data):
+    bestaand = laad_settings()
+    bestaand.update(data)
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(bestaand, f, indent=2, ensure_ascii=False)
+
+def openai_model():
+    return laad_settings().get("openai_model", "gpt-4o-mini")
+
 # Schrijf Google credentials vanuit env var als het bestand er niet is (Railway)
 _creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
 if _creds_json:
@@ -896,7 +915,7 @@ DASHBOARDDATA:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     max_tok = 400 if kantoor_modus else 1200
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=openai_model(),
         messages=[{"role": "system", "content": systeem}] + history,
         max_tokens=max_tok
     )
@@ -939,7 +958,7 @@ def signaal():
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=openai_model(),
         messages=[
             {"role": "system", "content": systeem},
             {"role": "user", "content": context}
@@ -1439,7 +1458,7 @@ def _genereer_taken(gsc, ga4, leads_data):
 
     def _vraag_agent(naam, prompt):
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=openai_model(),
             messages=[{"role": "user", "content": prompt}],
             max_tokens=400,
         )
@@ -1489,7 +1508,7 @@ def _genereer_taken(gsc, ga4, leads_data):
     )
 
     coord_resp = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=openai_model(),
         messages=[{"role": "user", "content": coordinator_prompt}],
         max_tokens=700,
     )
@@ -2108,6 +2127,24 @@ def leads_history():
 def paginas():
     sitemap = load_json("sitemap_urls.json")
     return jsonify(sitemap.get("urls", []))
+
+
+@app.route("/api/instellingen", methods=["GET"])
+def get_instellingen():
+    s = laad_settings()
+    return jsonify({
+        "openai_model": s.get("openai_model", "gpt-4o-mini"),
+        "beschikbare_modellen": OPENAI_MODELLEN,
+    })
+
+@app.route("/api/instellingen", methods=["POST"])
+def post_instellingen():
+    data = request.get_json() or {}
+    model = data.get("openai_model")
+    if model and model in OPENAI_MODELLEN:
+        sla_settings_op({"openai_model": model})
+        return jsonify({"ok": True, "openai_model": model})
+    return jsonify({"ok": False, "error": "Ongeldig model"}), 400
 
 
 if __name__ == "__main__":
