@@ -96,9 +96,10 @@ def main():
             "start": start_huidig.strftime("%Y-%m-%d"),
             "eind":  end_huidig.strftime("%Y-%m-%d"),
         },
-        "metrics": metrics_huidig,
-        "vorig":   metrics_vorig,
+        "metrics":     metrics_huidig,
+        "vorig":       metrics_vorig,
         "gegenereerd": today.isoformat(),
+        "clarity_url": f"https://clarity.microsoft.com/projects/view/{PROJECT_ID}",
     }
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:

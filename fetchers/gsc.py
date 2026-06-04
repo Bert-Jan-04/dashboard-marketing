@@ -172,6 +172,23 @@ def main():
     month_start = week_end - timedelta(days=29)
     kw_month = parse_rows(query(service, month_start, week_end, ["query"]), ["query"])
 
+    # ── Positie-historiek: top 20 keywords, laatste 8 weken ───────────────────
+    top_kw_set = {kw["query"] for kw in content_keywords[:20]}
+    keyword_historiek = {q: [] for q in top_kw_set}
+    for i in range(7, -1, -1):  # week 7 (oudst) → week 0 (huidig)
+        if i == 0:
+            ws, we = week_start, week_end
+        else:
+            we = week_start - timedelta(days=1) - timedelta(days=7 * (i - 1))
+            ws = we - timedelta(days=6)
+        week_rows = parse_rows(query(service, ws, we, ["query"]), ["query"])
+        week_map = {r["query"]: r["position"] for r in week_rows}
+        for q in top_kw_set:
+            keyword_historiek[q].append({
+                "week": ws.isoformat(),
+                "positie": week_map.get(q),
+            })
+
     # ── Totalen & groei ────────────────────────────────────────────────────────
     totals_this = {"clicks": sum(r["clicks"] for r in kw_this),
                    "impressions": sum(r["impressions"] for r in kw_this)}
@@ -200,6 +217,7 @@ def main():
         "cannibalisatie":         cannibalisatie,
         "featured_snippet_kansen": featured_kansen[:15],
         "verwaarloosde_paginas":  verwaarloosde[:15],
+        "keyword_historiek":      keyword_historiek,
     }
 
     with open(DATA_FILE, "w", encoding="utf-8") as f:

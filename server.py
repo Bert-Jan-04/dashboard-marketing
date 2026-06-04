@@ -164,7 +164,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 # Zorg dat data-map altijd bestaat (Railway heeft geen persistent FS)
 os.makedirs(DATA_DIR, exist_ok=True)
 
-USERS_DB = os.path.join(DATA_DIR, "users.db")
+USERS_DB    = os.path.join(DATA_DIR, "users.db")
+TAKEN_LOG   = os.path.join(DATA_DIR, "taken_log.json")
 init_db()
 
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
@@ -1586,6 +1587,33 @@ def _genereer_taken(gsc, ga4, leads_data):
                 pass
     return []
 
+def _sla_taken_op(taken, datum_str):
+    """Sla gegenereerde taken op in taken_log.json met open-status en unieke IDs."""
+    try:
+        log = []
+        if os.path.exists(TAKEN_LOG):
+            with open(TAKEN_LOG, encoding="utf-8") as f:
+                log = json.load(f)
+        if not isinstance(log, list):
+            log = []
+        # Verwijder ingangen ouder dan 30 dagen
+        cutoff = (date.today() - timedelta(days=30)).isoformat()
+        log = [e for e in log if e.get("datum", "") >= cutoff]
+        # Voeg vandaag toe (overschrijf als datum al bestaat)
+        log = [e for e in log if e.get("datum") != datum_str]
+        log.append({
+            "datum": datum_str,
+            "taken": [
+                {**t, "id": f"{datum_str}-{i}", "status": "open"}
+                for i, t in enumerate(taken[:3])
+            ],
+        })
+        with open(TAKEN_LOG, "w", encoding="utf-8") as f:
+            json.dump(log, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[taken-log] Opslaan mislukt: {e}")
+
+
 def _stuur_takenmail():
     """Stuur dagelijkse takenmail met 3 AI-gegenereerde actiepunten."""
     gsc        = load_json("gsc_data.json")
@@ -1593,6 +1621,12 @@ def _stuur_takenmail():
     leads_data = load_json("leads_week.json")
 
     taken = _genereer_taken(gsc, ga4, leads_data)
+
+    dag_nl = ["maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag","zondag"]
+    mnd_nl = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"]
+    nu_datum = date.today()
+    datum_iso = nu_datum.isoformat()
+    _sla_taken_op(taken, datum_iso)
 
     prio_kleur = {"hoog": "#f87171", "middel": "#fbbf24", "laag": "#02CE80"}
 
@@ -1627,10 +1661,7 @@ def _stuur_takenmail():
     groei_kleur_fn = lambda g: "#02CE80" if (g or 0) >= 0 else "#f87171"
     groei_teken_fn = lambda g: f"+{g}" if (g or 0) >= 0 else str(g)
 
-    dag_nl = ["maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag","zondag"]
-    mnd_nl = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"]
-    nu     = date.today()
-    datum_str = f"{dag_nl[nu.weekday()]} {nu.day} {mnd_nl[nu.month-1]} {nu.year}"
+    datum_str = f"{dag_nl[nu_datum.weekday()]} {nu_datum.day} {mnd_nl[nu_datum.month-1]} {nu_datum.year}"
 
     html = f"""
     <html><body style="margin:0;padding:0;background:#0e0e0e;font-family:'Segoe UI',Arial,sans-serif">
@@ -1786,6 +1817,46 @@ def mail_signalering():
             _stuur_signalering_mail(signalen)
             return jsonify({"ok": True, "signalen": len(signalen), "details": [s["tekst"] for s in signalen]})
         return jsonify({"ok": True, "signalen": 0, "bericht": "Geen signalen gedetecteerd."})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/taken")
+def get_taken():
+    """Geef de takenlog terug (laatste 14 dagen)."""
+    if not os.path.exists(TAKEN_LOG):
+        return jsonify([])
+    try:
+        with open(TAKEN_LOG, encoding="utf-8") as f:
+            log = json.load(f)
+        cutoff = (date.today() - timedelta(days=14)).isoformat()
+        log = [e for e in log if e.get("datum", "") >= cutoff]
+        log.sort(key=lambda e: e.get("datum", ""), reverse=True)
+        return jsonify(log)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/taken/status", methods=["POST"])
+def update_taak_status():
+    """Zet status van een taak op 'gedaan' of 'open'."""
+    body = request.get_json() or {}
+    taak_id = body.get("id", "")
+    nieuwe_status = body.get("status", "gedaan")
+    if not taak_id or nieuwe_status not in ("open", "gedaan"):
+        return jsonify({"ok": False, "error": "Ongeldig verzoek"}), 400
+    if not os.path.exists(TAKEN_LOG):
+        return jsonify({"ok": False, "error": "Geen takenlog"}), 404
+    try:
+        with open(TAKEN_LOG, encoding="utf-8") as f:
+            log = json.load(f)
+        for dag in log:
+            for taak in dag.get("taken", []):
+                if taak.get("id") == taak_id:
+                    taak["status"] = nieuwe_status
+        with open(TAKEN_LOG, "w", encoding="utf-8") as f:
+            json.dump(log, f, indent=2, ensure_ascii=False)
+        return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 

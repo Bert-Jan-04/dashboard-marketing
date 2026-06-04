@@ -258,6 +258,7 @@
     <div class="nav-section">Overzicht</div>
     <div class="nav-item" onclick="navigeer('home')">◼ Home</div>
     <div class="nav-item active" onclick="navigeer('dashboard')">◼ Dashboard</div>
+    <div class="nav-item" onclick="navigeer('taken')">◼ Taken <span id="nav-taken-badge" style="display:none;background:#f87171;color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px;vertical-align:middle"></span></div>
     <div class="nav-item" onclick="navigeer('kantoor')">◼ Kantoor</div>
     <div class="nav-section">Data bronnen</div>
     <div class="nav-item" onclick="navigeer('searchconsole')">◼ Search Console</div>
@@ -554,6 +555,18 @@
         </div>
     </div>
 
+    <!-- ======================== PAGINA: TAKEN ======================== -->
+    <div class="page" id="page-taken">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div>
+                <h2 style="margin:0;font-size:18px;font-weight:700">Taakopvolging</h2>
+                <p style="margin:4px 0 0;font-size:13px;color:#828282">AI-gegenereerde taken van de afgelopen 14 dagen — vink af zodra je iets hebt gedaan.</p>
+            </div>
+            <button onclick="triggerTakenmail()" style="background:#02CE8022;border:1px solid #02CE8055;color:#02CE80;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px">Nieuwe taken genereren</button>
+        </div>
+        <div id="taken-lijst"><span style="color:#828282;font-size:13px">Laden...</span></div>
+    </div>
+
     <!-- ======================== PAGINA: SEARCH CONSOLE ======================== -->
     <div class="page" id="page-searchconsole">
 
@@ -593,6 +606,7 @@
                         <th data-sort="impressions" onclick="sortGSC('impressions')">Impressions</th>
                         <th data-sort="ctr" onclick="sortGSC('ctr')">CTR</th>
                         <th data-sort="position" onclick="sortGSC('position')">Positie</th>
+                        <th title="Positietrend afgelopen 8 weken">Trend</th>
                     </tr>
                 </thead>
                 <tbody id="gsc-keywords-tabel">
@@ -1137,13 +1151,14 @@
 
         <div class="card" style="margin-top:20px">
             <div class="card-title">Populaire pagina's</div>
-            <div class="card-sub">Meest bezochte pagina's via Clarity — afgelopen 7 dagen</div>
+            <div class="card-sub">Meest bezochte pagina's via Clarity — afgelopen 7 dagen. Klik op een pagina om de heatmap te openen.</div>
             <table>
                 <thead>
                     <tr>
                         <th>Pagina</th>
                         <th style="text-align:right">Bezoeken</th>
                         <th style="text-align:right">Aandeel</th>
+                        <th style="text-align:center">Heatmap</th>
                     </tr>
                 </thead>
                 <tbody id="cl-paginas"></tbody>
@@ -1355,14 +1370,15 @@ function navigeer(pagina) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
 
-    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusterprestaties', analyse: 'Analyse', clarity: 'Microsoft Clarity', concurrenten: 'Concurrentenanalyse' };
-    document.getElementById('page-titel').textContent = titels[pagina];
+    const titels = { dashboard: 'Marketing Intelligence', taken: 'Taakopvolging', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusterprestaties', analyse: 'Analyse', clarity: 'Microsoft Clarity', concurrenten: 'Concurrentenanalyse' };
+    document.getElementById('page-titel').textContent = titels[pagina] || pagina;
 
     const navItems = document.querySelectorAll('.nav-item');
-    const index = { home: 0, dashboard: 1, kantoor: 2, searchconsole: 3, analytics: 4, trends: 5, keywords: 6, clusters: 7, analyse: 8, clarity: 9, concurrenten: 10 };
+    const index = { home: 0, dashboard: 1, taken: 2, kantoor: 3, searchconsole: 4, analytics: 5, trends: 6, keywords: 7, clusters: 8, analyse: 9, clarity: 10, concurrenten: 11 };
     if (index[pagina] !== undefined) navItems[index[pagina]].classList.add('active');
 
     if (pagina === 'home') renderHomepage();
+    if (pagina === 'taken') laadTaken();
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
     if (pagina === 'analytics' && ga4Data) vulAnalyticsPagina();
     if (pagina === 'trends' && trendsData) vulTrendsPagina();
@@ -1420,6 +1436,14 @@ async function laadData() {
 
     vulContentPagesStatus();
     if (huidigePagina === 'clarity') vulClarityPagina();
+
+    // Badge bijwerken zonder de taken-pagina te renderen
+    try {
+        const takenRes = await fetch('/api/taken', nc);
+        const takenLog = await takenRes.json();
+        updateTakenBadge(takenLog);
+        if (huidigePagina === 'taken') renderTaken(takenLog);
+    } catch(e) {}
 
     try {
         const ccRes = await fetch('/api/competitor-data', { cache: 'no-store' });
@@ -1570,19 +1594,40 @@ function filterKeywords() {
     renderKeywords(gefilterd);
 }
 
+function sparkline(punten) {
+    const vals = punten.map(p => p.positie).filter(v => v != null);
+    if (vals.length < 2) return '<span style="color:#555;font-size:11px">—</span>';
+    const max = Math.max(...vals);
+    const min = Math.min(...vals);
+    const range = max - min || 1;
+    const w = 60, h = 22, pad = 2;
+    const xs = vals.map((_, i) => pad + i * (w - pad * 2) / (vals.length - 1));
+    const ys = vals.map(v => pad + (1 - (max - v) / range) * (h - pad * 2));
+    const pts = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+    const eerste = vals[0], laatste = vals[vals.length - 1];
+    const kleur = laatste < eerste ? '#02CE80' : laatste > eerste ? '#f87171' : '#828282';
+    return `<svg width="${w}" height="${h}" style="display:block;overflow:visible">
+        <polyline points="${pts}" fill="none" stroke="${kleur}" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="${xs[xs.length-1]}" cy="${ys[ys.length-1]}" r="2.5" fill="${kleur}"/>
+    </svg>`;
+}
+
 function renderKeywords(data) {
     const el = document.getElementById('gsc-kw-count');
     if (el) el.textContent = data.length + ' keywords';
+    const historiek = gscData?.keyword_historiek || {};
     const sorted = _applySort(data, 'gsc-keywords-tabel', 'clicks');
-    document.getElementById('gsc-keywords-tabel').innerHTML = sorted.map(k => `
-        <tr>
+    document.getElementById('gsc-keywords-tabel').innerHTML = sorted.map(k => {
+        const punten = historiek[k.query] || [];
+        return `<tr>
             <td>${k.query}</td>
             <td>${k.clicks}</td>
             <td>${k.impressions.toLocaleString('nl')}</td>
             <td>${k.ctr}%</td>
             <td>${positieBadge(k.position)}</td>
-        </tr>
-    `).join('') || '<tr><td colspan="5" class="loading">Geen resultaten</td></tr>';
+            <td style="text-align:center">${sparkline(punten)}</td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="6" class="loading">Geen resultaten</td></tr>';
 }
 
 function sortGSC(key) { _updateSort('gsc-keywords-tabel', key); filterKeywords(); }
@@ -1611,19 +1656,24 @@ function renderKwGscTabel() {
     gscSectie.style.display = 'block';
 }
 
+function paginaLink(path) {
+    const url = 'https://dakdekkersgids.nl' + path;
+    return `<a href="${url}" target="_blank" rel="noopener"
+        style="color:#02CE80;text-decoration:none;font-family:monospace;font-size:12px"
+        title="Pagina openen">${path}</a>`;
+}
+
 function renderGSCPages(data) {
     const sorted = _applySort(data, 'gsc-paginas-tabel', 'clicks');
     document.getElementById('gsc-paginas-tabel').innerHTML = sorted.map(p => {
         const path = p.page.replace('https://dakdekkersgids.nl', '') || '/';
-        return `
-            <tr>
-                <td><span style="color:#02CE80">${path}</span></td>
-                <td>${p.clicks}</td>
-                <td>${p.impressions.toLocaleString('nl')}</td>
-                <td>${p.ctr}%</td>
-                <td>${positieBadge(p.position)}</td>
-            </tr>
-        `;
+        return `<tr>
+            <td>${paginaLink(path)}</td>
+            <td>${p.clicks}</td>
+            <td>${p.impressions.toLocaleString('nl')}</td>
+            <td>${p.ctr}%</td>
+            <td>${positieBadge(p.position)}</td>
+        </tr>`;
     }).join('');
 }
 
@@ -1633,6 +1683,91 @@ function positieBadge(pos) {
     if (pos <= 3) return `<span class="badge-green">#${pos}</span>`;
     if (pos <= 10) return `<span class="badge-yellow">#${pos}</span>`;
     return `<span class="badge-red">#${pos}</span>`;
+}
+
+// ── TAKEN PAGINA ─────────────────────────────────────────────
+async function laadTaken() {
+    document.getElementById('taken-lijst').innerHTML = '<span style="color:#828282;font-size:13px">Laden...</span>';
+    try {
+        const res = await fetch('/api/taken');
+        const log = await res.json();
+        renderTaken(log);
+        updateTakenBadge(log);
+    } catch(e) {
+        document.getElementById('taken-lijst').innerHTML = '<p style="color:#f87171;font-size:13px">Kon taken niet laden.</p>';
+    }
+}
+
+function renderTaken(log) {
+    if (!log.length) {
+        document.getElementById('taken-lijst').innerHTML = '<p style="color:#828282;font-size:13px">Geen taken gevonden. Genereer eerst taken via de takenmail of de knop hierboven.</p>';
+        return;
+    }
+    const prio_kleur = { hoog: '#f87171', middel: '#fbbf24', laag: '#02CE80' };
+    const dag_nl = ['zo','ma','di','wo','do','vr','za'];
+    const mnd_nl = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+    document.getElementById('taken-lijst').innerHTML = log.map(dag => {
+        const d = new Date(dag.datum);
+        const label = `${dag_nl[d.getDay()]} ${d.getDate()} ${mnd_nl[d.getMonth()]}`;
+        const open = dag.taken.filter(t => t.status !== 'gedaan').length;
+        const taken_html = dag.taken.map(t => {
+            const prio = (t.prioriteit || 'middel').toLowerCase();
+            const kleur = prio_kleur[prio] || '#fbbf24';
+            const gedaan = t.status === 'gedaan';
+            return `<div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid #252525;opacity:${gedaan ? '0.45' : '1'}">
+                <div style="flex-shrink:0;padding-top:2px">
+                    <input type="checkbox" ${gedaan ? 'checked' : ''}
+                        onchange="toggleTaakStatus('${t.id}', this.checked)"
+                        style="width:17px;height:17px;accent-color:#02CE80;cursor:pointer">
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                        <span style="font-size:14px;font-weight:700;color:#fff;${gedaan ? 'text-decoration:line-through;color:#555' : ''}">${t.taak || ''}</span>
+                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${kleur}22;color:${kleur};border:1px solid ${kleur}44;text-transform:uppercase;letter-spacing:0.4px">${prio}</span>
+                    </div>
+                    <p style="margin:0 0 6px;font-size:13px;color:#a0a0a0;line-height:1.6">${t.toelichting || ''}</p>
+                    <span style="font-size:12px;color:#02CE80">● ${t.medewerker || '—'}</span>
+                </div>
+            </div>`;
+        }).join('');
+        return `<div class="card" style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <div class="card-title" style="margin:0">${label}</div>
+                <span style="font-size:11px;color:${open > 0 ? '#fbbf24' : '#02CE80'}">${open > 0 ? open + ' open' : '✓ alles gedaan'}</span>
+            </div>
+            ${taken_html}
+        </div>`;
+    }).join('');
+}
+
+function updateTakenBadge(log) {
+    const badge = document.getElementById('nav-taken-badge');
+    if (!badge) return;
+    const open = log.flatMap(d => d.taken).filter(t => t.status !== 'gedaan').length;
+    if (open > 0) { badge.textContent = open; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+}
+
+async function toggleTaakStatus(id, gedaan) {
+    await fetch('/api/taken/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: gedaan ? 'gedaan' : 'open' })
+    });
+    laadTaken();
+}
+
+async function triggerTakenmail() {
+    const btn = event.target;
+    btn.textContent = 'Bezig...';
+    btn.disabled = true;
+    try {
+        await fetch('/api/mail-taken', { method: 'POST' });
+        await laadTaken();
+    } finally {
+        btn.textContent = 'Nieuwe taken genereren';
+        btn.disabled = false;
+    }
 }
 
 // ── ANALYTICS PAGINA ─────────────────────────────────────────
@@ -1668,7 +1803,7 @@ function renderGA4Aanvragen() {
     document.getElementById('ga4-aanvragen-tabel').innerHTML = data.length
         ? data.map(a => `
             <tr>
-                <td><span style="color:#02CE80">${a.landing_page}</span></td>
+                <td>${paginaLink(a.landing_page)}</td>
                 <td><span class="badge-green">${a.aanvragen}</span></td>
             </tr>`).join('')
         : '<tr><td colspan="2" class="loading">Geen aanvragen gevonden</td></tr>';
@@ -1679,7 +1814,7 @@ function renderGA4Paginas() {
     const data = _applySort(ga4Data.top_pages || [], 'ga4-paginas-tabel', 'sessions');
     document.getElementById('ga4-paginas-tabel').innerHTML = data.map(p => `
         <tr>
-            <td><span style="color:#02CE80">${p.pagePath}</span></td>
+            <td>${paginaLink(p.pagePath)}</td>
             <td>${p.sessions.toLocaleString('nl')}</td>
             <td>${p.activeUsers.toLocaleString('nl')}</td>
             <td>${(p.bounceRate * 100).toFixed(1)}%</td>
@@ -1916,7 +2051,7 @@ function vulClustersPagina() {
     document.getElementById('cl-pagina-tabel').innerHTML = (dl.per_pagina || []).length
         ? (dl.per_pagina).map(r => `
             <tr>
-                <td><span style="color:#02CE80">${r.pagina}</span></td>
+                <td>${paginaLink(r.pagina)}</td>
                 <td><span class="badge-green">${r.leads}</span></td>
             </tr>`).join('')
         : '<tr><td colspan="2" class="text-muted">Geen directe leads</td></tr>';
@@ -3028,14 +3163,18 @@ function vulClarityPagina() {
     // Populaire pagina's
     const paginas = (m.populaire_paginas || []);
     const totPag = paginas.reduce((s, p) => s + p.bezoeken, 0) || 1;
+    const clarityBase = clarityData.clarity_url || 'https://clarity.microsoft.com';
     document.getElementById('cl-paginas').innerHTML = paginas.map(p => {
         const pct = Math.round(p.bezoeken / totPag * 100);
+        const heatmapUrl = `${clarityBase}/heatmaps?date=Last+7+Days&url=https://dakdekkersgids.nl${p.url}`;
         return `<tr>
-            <td style="font-family:monospace;color:#02CE80;font-size:12px">${p.url}</td>
+            <td>${paginaLink(p.url)}</td>
             <td style="text-align:right;font-weight:700;white-space:nowrap">${p.bezoeken.toLocaleString('nl-NL')}</td>
             <td style="text-align:right;color:#828282;white-space:nowrap;width:60px">${pct}%</td>
+            <td style="text-align:center;width:80px"><a href="${heatmapUrl}" target="_blank" rel="noopener"
+                style="font-size:11px;color:#0078d4;text-decoration:none;padding:2px 8px;border:1px solid #0078d422;border-radius:4px">Heatmap</a></td>
         </tr>`;
-    }).join('') || '<tr><td colspan="3" style="color:#828282">Geen pagina-data.</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="color:#828282">Geen pagina-data.</td></tr>';
 
     // Signalen
     const signalen = [];
