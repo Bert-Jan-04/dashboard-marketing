@@ -168,7 +168,7 @@ USERS_DB = os.path.join(DATA_DIR, "users.db")
 init_db()
 
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
-OPENAI_MODELLEN = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "o3-mini"]
+OPENAI_MODELLEN = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-4.5", "o3-mini", "o3"]
 
 def laad_settings():
     try:
