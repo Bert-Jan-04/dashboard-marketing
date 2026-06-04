@@ -509,7 +509,10 @@
         <!-- PAGINA DETAIL -->
         <div class="pagina-detail" id="pagina-detail">
             <div class="detail-header" id="detail-titel">—</div>
-            <div class="detail-grid">
+            <div id="detail-geen-data" style="display:none;color:var(--text-muted);font-size:13px;padding:4px 0 16px">
+                Geen GSC of GA4 data gevonden voor deze pagina — mogelijk weinig tot geen traffic.
+            </div>
+            <div class="detail-grid" id="detail-grid">
                 <div class="detail-card">
                     <div class="detail-label">Clicks (GSC)</div>
                     <div class="detail-value" id="detail-clicks">—</div>
@@ -1542,19 +1545,33 @@ function selecteerPagina(path) {
 
 async function zoekPagina() {
     let pad = document.getElementById('pagina-input').value.trim().replace(/^\/|\/$/g, '');
-    if (!pad) return;
-    const res = await fetch(`/api/pagina?path=${encodeURIComponent(pad)}`);
-    const data = await res.json();
+    const btn = document.querySelector('.search-btn[onclick="zoekPagina()"]');
+    if (!pad) {
+        if (btn) { btn.textContent = 'Vul een pagina in'; setTimeout(() => btn.textContent = 'Bekijk data', 1500); }
+        return;
+    }
+    if (btn) btn.textContent = 'Laden…';
+    try {
+        const res = await fetch(`/api/pagina?path=${encodeURIComponent(pad)}`);
+        const data = await res.json();
+        const geenData = !data.gsc && !data.ga4;
 
-    document.getElementById('detail-titel').textContent = data.pagina;
-    document.getElementById('detail-clicks').textContent = data.gsc?.clicks ?? '—';
-    document.getElementById('detail-clicks-sub').textContent = data.gsc ? `${data.gsc.impressions} impressions` : 'Geen GSC data';
-    document.getElementById('detail-sessies').textContent = data.ga4?.sessions ?? '—';
-    document.getElementById('detail-sessies-sub').textContent = data.ga4 ? `${data.ga4.activeUsers} actieve gebruikers` : 'Geen GA4 data';
-    document.getElementById('detail-ctr').textContent = data.gsc?.ctr ? data.gsc.ctr + '%' : '—';
-    document.getElementById('detail-ctr-sub').textContent = data.gsc ? `Positie ${data.gsc.position}` : '—';
-    document.getElementById('detail-aanvragen').textContent = data.offerteaanvragen;
-    document.getElementById('pagina-detail').classList.add('visible');
+        document.getElementById('detail-titel').textContent = data.pagina || `/${pad}/`;
+        document.getElementById('detail-geen-data').style.display = geenData ? 'block' : 'none';
+        document.getElementById('detail-grid').style.display = geenData ? 'none' : 'grid';
+        document.getElementById('detail-clicks').textContent = data.gsc?.clicks ?? '—';
+        document.getElementById('detail-clicks-sub').textContent = data.gsc ? `${data.gsc.impressions} impressions` : 'Geen GSC data';
+        document.getElementById('detail-sessies').textContent = data.ga4?.sessions ?? '—';
+        document.getElementById('detail-sessies-sub').textContent = data.ga4 ? `${data.ga4.activeUsers} actieve gebruikers` : 'Geen GA4 data';
+        document.getElementById('detail-ctr').textContent = data.gsc?.ctr ? data.gsc.ctr + '%' : '—';
+        document.getElementById('detail-ctr-sub').textContent = data.gsc ? `Positie ${data.gsc.position}` : '—';
+        document.getElementById('detail-aanvragen').textContent = data.offerteaanvragen ?? '—';
+        document.getElementById('pagina-detail').classList.add('visible');
+    } catch(e) {
+        if (btn) { btn.textContent = 'Fout — probeer opnieuw'; setTimeout(() => btn.textContent = 'Bekijk data', 2000); }
+    } finally {
+        if (btn) btn.textContent = 'Bekijk data';
+    }
 }
 
 document.getElementById('pagina-input').addEventListener('keydown', e => { if (e.key === 'Enter') zoekPagina(); });
