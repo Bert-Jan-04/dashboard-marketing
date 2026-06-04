@@ -168,7 +168,7 @@ USERS_DB = os.path.join(DATA_DIR, "users.db")
 init_db()
 
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
-OPENAI_MODELLEN = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-4.5", "o3-mini", "o3"]
+OPENAI_MODELLEN = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "o3-mini", "o3"]
 
 def laad_settings():
     try:
@@ -185,6 +185,15 @@ def sla_settings_op(data):
 
 def openai_model():
     return laad_settings().get("openai_model", "gpt-4o-mini")
+
+def openai_completion(client, model, messages, max_tokens):
+    model_is_o3 = model.startswith("o3")
+    kwargs = {"model": model, "messages": messages}
+    if model_is_o3:
+        kwargs["max_completion_tokens"] = max_tokens
+    else:
+        kwargs["max_tokens"] = max_tokens
+    return client.chat.completions.create(**kwargs)
 
 # Schrijf Google credentials vanuit env var als het bestand er niet is (Railway)
 _creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
@@ -914,11 +923,8 @@ DASHBOARDDATA:
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     max_tok = 400 if kantoor_modus else 1200
-    response = client.chat.completions.create(
-        model=openai_model(),
-        messages=[{"role": "system", "content": systeem}] + history,
-        max_tokens=max_tok
-    )
+    model = openai_model()
+    response = openai_completion(client, model, [{"role": "system", "content": systeem}] + history, max_tok)
 
     raw = response.choices[0].message.content
     match = re.search(r'\[VRAGEN\](.*?)\[/VRAGEN\]', raw, re.DOTALL)
@@ -957,14 +963,11 @@ def signaal():
     systeem = f"""Je bent een data-analist voor dakdekkersgids.nl. Geef één concrete, opvallende observatie over de data die de gebruiker nu ziet. Maximaal 2 zinnen. Eindig met één gerichte vraag die je kunt stellen om verder te analyseren. Geen intro, direct de observatie."""
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model=openai_model(),
-        messages=[
-            {"role": "system", "content": systeem},
-            {"role": "user", "content": context}
-        ],
-        max_tokens=150
-    )
+    model = openai_model()
+    response = openai_completion(client, model, [
+        {"role": "system", "content": systeem},
+        {"role": "user", "content": context}
+    ], 150)
 
     return jsonify({"signaal": response.choices[0].message.content})
 
@@ -1518,11 +1521,8 @@ def _genereer_taken(gsc, ga4, leads_data):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def _vraag_agent(naam, prompt):
-        resp = client.chat.completions.create(
-            model=openai_model(),
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=400,
-        )
+        model = openai_model()
+        resp = openai_completion(client, model, [{"role": "user", "content": prompt}], 400)
         raw = resp.choices[0].message.content
         try:
             voorstellen = json.loads(raw)
@@ -1568,11 +1568,8 @@ def _genereer_taken(gsc, ga4, leads_data):
         "]}"
     )
 
-    coord_resp = client.chat.completions.create(
-        model=openai_model(),
-        messages=[{"role": "user", "content": coordinator_prompt}],
-        max_tokens=700,
-    )
+    model = openai_model()
+    coord_resp = openai_completion(client, model, [{"role": "user", "content": coordinator_prompt}], 700)
     raw = coord_resp.choices[0].message.content
     try:
         data = json.loads(raw)
