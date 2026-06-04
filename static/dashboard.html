@@ -593,7 +593,21 @@
                         <th data-sort="impressions" onclick="sortGSC('impressions')">Impressions</th>
                         <th data-sort="ctr" onclick="sortGSC('ctr')">CTR</th>
                         <th data-sort="position" onclick="sortGSC('position')">Positie</th>
-                        <th title="Positietrend afgelopen 8 weken">Trend</th>
+                        <th>
+                            <span class="tooltip-wrap">
+                                Trend
+                                <span class="tooltip-icon">i</span>
+                                <div class="tooltip-box" style="left:auto;right:0;width:280px">
+                                    <b>Positietrend (8 weken)</b><br>
+                                    De sparkline toont de gemiddelde Google-positie van dit keyword per week, over de afgelopen 8 weken.<br><br>
+                                    <b>Lees de grafiek:</b><br>
+                                    • Lijn omlaag = positie stijgt (beter)<br>
+                                    • Lijn omhoog = positie daalt (slechter)<br><br>
+                                    <b>Kleur:</b><br>
+                                    Groen = verbeterd t.o.v. week 1 · Rood = verslechterd · Grijs = stabiel
+                                </div>
+                            </span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="gsc-keywords-tabel">
