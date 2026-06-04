@@ -10,13 +10,108 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from flask import Flask, jsonify, request, send_from_directory
+import sqlite3
+from flask import Flask, jsonify, request, send_from_directory, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
+
+
+# ── GEBRUIKERSDATABASE ───────────────────────────────────────
+USERS_DB = None  # wordt gezet na BASE_DIR definitie
+
+def _db():
+    con = sqlite3.connect(USERS_DB)
+    con.row_factory = sqlite3.Row
+    return con
+
+def init_db():
+    con = _db()
+    con.execute("""CREATE TABLE IF NOT EXISTS gebruikers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        naam TEXT UNIQUE NOT NULL COLLATE NOCASE,
+        wachtwoord_hash TEXT NOT NULL,
+        aangemaakt TEXT NOT NULL DEFAULT (date('now'))
+    )""")
+    con.commit()
+    con.close()
+
+def controleer_login(naam, wachtwoord):
+    con = _db()
+    rij = con.execute("SELECT wachtwoord_hash FROM gebruikers WHERE naam = ?", (naam,)).fetchone()
+    con.close()
+    return rij and check_password_hash(rij["wachtwoord_hash"], wachtwoord)
+
+def maak_account(naam, wachtwoord):
+    """Retourneert True bij succes, False als naam al bestaat."""
+    try:
+        con = _db()
+        con.execute("INSERT INTO gebruikers (naam, wachtwoord_hash) VALUES (?, ?)",
+                    (naam, generate_password_hash(wachtwoord)))
+        con.commit()
+        con.close()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+def aantal_accounts():
+    con = _db()
+    n = con.execute("SELECT COUNT(*) FROM gebruikers").fetchone()[0]
+    con.close()
+    return n
+
+
+@app.before_request
+def check_login():
+    vrij = {"/login", "/logout", "/registreer"}
+    if request.path in vrij:
+        return
+    if request.path.startswith("/static/"):
+        return
+    if not session.get("gebruiker"):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Niet ingelogd"}), 401
+        return redirect("/login")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        naam = request.form.get("gebruikersnaam", "").strip()
+        ww   = request.form.get("wachtwoord", "")
+        if controleer_login(naam, ww):
+            session["gebruiker"] = naam
+            return redirect("/")
+        return redirect("/login?fout=1")
+    return send_from_directory("static", "login.html")
+
+
+@app.route("/registreer", methods=["GET", "POST"])
+def registreer():
+    if request.method == "POST":
+        naam = request.form.get("gebruikersnaam", "").strip()
+        ww   = request.form.get("wachtwoord", "")
+        ww2  = request.form.get("wachtwoord2", "")
+        if not naam or len(ww) < 6:
+            return redirect("/registreer?fout=kort")
+        if ww != ww2:
+            return redirect("/registreer?fout=match")
+        if not maak_account(naam, ww):
+            return redirect("/registreer?fout=bestaat")
+        session["gebruiker"] = naam
+        return redirect("/")
+    return send_from_directory("static", "registreer.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
 
 
 def _gmail_stuur(aan, onderwerp, html):
@@ -68,6 +163,9 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 # Zorg dat data-map altijd bestaat (Railway heeft geen persistent FS)
 os.makedirs(DATA_DIR, exist_ok=True)
+
+USERS_DB = os.path.join(DATA_DIR, "users.db")
+init_db()
 
 # Schrijf Google credentials vanuit env var als het bestand er niet is (Railway)
 _creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")

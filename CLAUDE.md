@@ -52,6 +52,8 @@ Dashboard: http://localhost:5000
 | `MAIL_ONTVANGERS` | Kommagescheiden e-mailadressen |
 | `MEDEWERKERS` | `Naam=email,Naam2=email2` formaat |
 | `MANGOOLS_API_KEY` | Mangools keyword API |
+| `SECRET_KEY` | Flask sessie-sleutel (willekeurig bij ontbreken) |
+| `DASHBOARD_GEBRUIKERS` | `naam:wachtwoord,naam2:ww2` — dashboard logins |
 
 ## Dagelijkse mails (7:00)
 

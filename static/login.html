@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inloggen — Marketing Intelligence</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 380px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #02CE80;
+            box-shadow: 0 0 8px #02CE80;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+        .logo-tekst { font-size: 13px; font-weight: 700; color: #02CE80; letter-spacing: 1.2px; text-transform: uppercase; }
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .sub { font-size: 13px; color: #555; margin-bottom: 28px; }
+        .fout { color: #f87171; font-size: 13px; margin-bottom: 16px; display: none; }
+        label { display: block; font-size: 11.5px; color: #828282; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 6px; }
+        input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 18px;
+            outline: none;
+            transition: border-color .15s;
+        }
+        input:focus { border-color: #02CE80; }
+        button {
+            width: 100%;
+            background: #02CE80;
+            border: none;
+            border-radius: 8px;
+            padding: 11px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+        button:hover { opacity: .85; }
+        .registreer { display: block; text-align: center; font-size: 12.5px; color: #555; text-decoration: none; margin-top: 12px; }
+        .registreer:hover { color: #828282; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <span class="dot"></span>
+            <span class="logo-tekst">Live dashboard</span>
+        </div>
+        <h1>Inloggen</h1>
+        <p class="sub">Marketing Intelligence — dakdekkersgids.nl</p>
+        <p class="fout" id="fout-melding">Gebruikersnaam of wachtwoord onjuist.</p>
+        <form method="POST" action="/login">
+            <label for="gebruikersnaam">Gebruikersnaam</label>
+            <input type="text" id="gebruikersnaam" name="gebruikersnaam" autocomplete="username" autofocus required>
+            <label for="wachtwoord">Wachtwoord</label>
+            <input type="password" id="wachtwoord" name="wachtwoord" autocomplete="current-password" required>
+            <button type="submit">Inloggen →</button>
+        </form>
+        <a href="/registreer" class="registreer">Nog geen account? Aanmaken →</a>
+    </div>
+    <script>
+        if (new URLSearchParams(location.search).get('fout')) {
+            document.getElementById('fout-melding').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
