@@ -593,7 +593,7 @@
                         <th data-sort="impressions" onclick="sortGSC('impressions')">Impressions</th>
                         <th data-sort="ctr" onclick="sortGSC('ctr')">CTR</th>
                         <th data-sort="position" onclick="sortGSC('position')">Positie</th>
-                        <th>
+                        <th data-sort="trend" onclick="sortGSC('trend')" style="cursor:pointer">
                             <span class="tooltip-wrap">
                                 Trend
                                 <span class="tooltip-icon">i</span>
@@ -604,7 +604,9 @@
                                     • Lijn omlaag = positie stijgt (beter)<br>
                                     • Lijn omhoog = positie daalt (slechter)<br><br>
                                     <b>Kleur:</b><br>
-                                    Groen = verbeterd t.o.v. week 1 · Rood = verslechterd · Grijs = stabiel
+                                    Groen = verbeterd t.o.v. week 1 · Rood = verslechterd · Grijs = stabiel<br><br>
+                                    <b>Sorteren:</b><br>
+                                    Klik op de kolom om te sorteren op beste of slechtste trend.
                                 </div>
                             </span>
                         </th>
@@ -1604,11 +1606,18 @@ function sparkline(punten) {
     </svg>`;
 }
 
+function trendScore(punten) {
+    const vals = punten.map(p => p.positie).filter(v => v != null);
+    if (vals.length < 2) return null;
+    return vals[0] - vals[vals.length - 1];
+}
+
 function renderKeywords(data) {
     const el = document.getElementById('gsc-kw-count');
     if (el) el.textContent = data.length + ' keywords';
     const historiek = gscData?.keyword_historiek || {};
-    const sorted = _applySort(data, 'gsc-keywords-tabel', 'clicks');
+    const enriched = data.map(k => ({ ...k, trend: trendScore(historiek[k.query] || []) }));
+    const sorted = _applySort(enriched, 'gsc-keywords-tabel', 'clicks');
     document.getElementById('gsc-keywords-tabel').innerHTML = sorted.map(k => {
         const punten = historiek[k.query] || [];
         return `<tr>
