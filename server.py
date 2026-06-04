@@ -1179,12 +1179,19 @@ def _detect_signalen():
         delta = oud["position"] - kw["position"]  # positief = gestegen
         if abs(delta) >= POSITIE_DREMPEL:
             richting = "gestegen" if delta > 0 else "gedaald"
+            if delta > 0:
+                actie = (f"Voeg 2–3 interne links toe vanuit gerelateerde pagina's naar de pagina die rankt voor '{q}'. "
+                         f"Pas de title tag aan zodat hij eindigt op een actie-CTA zoals '→ Gratis offerte'.")
+            else:
+                actie = (f"Open de pagina die rankt voor '{q}' en voeg een FAQ-blok toe met de exacte zoekterm als vraag. "
+                         f"Controleer of '{q}' voorkomt in de H1, title tag én eerste alinea.")
             signalen.append({
                 "type":   "keyword_positie",
                 "niveau": "positief" if delta > 0 else "negatief",
                 "tekst":  f"Keyword <strong>'{q}'</strong> is {abs(delta):.0f} plekken {richting}: "
                           f"positie {oud['position']:.0f} → {kw['position']:.0f} "
-                          f"({kw['impressions']} impressies, {kw['clicks']} clicks)"
+                          f"({kw['impressions']} impressies, {kw['clicks']} clicks)",
+                "actie":  actie,
             })
 
     # Pagina: nieuw in top 10
@@ -1200,7 +1207,10 @@ def _detect_signalen():
                 "niveau": "positief",
                 "tekst":  f"Pagina <strong>{pad}</strong> staat nu in de <strong>top 10</strong>! "
                           f"Positie {oud['position']:.0f} → {pg['position']:.0f} "
-                          f"({pg['clicks']} clicks, {pg['impressions']} impressies)"
+                          f"({pg['clicks']} clicks, {pg['impressions']} impressies)",
+                "actie":  (f"Optimaliseer nu de title tag van {pad}: voeg een actie-element toe ('Gratis offerte', "
+                           f"'Direct aanvragen') zodat de CTR stijgt terwijl de positie vers is. "
+                           f"Voeg ook 2 interne links toe vanuit andere pagina's."),
             })
 
     # Pagina: ≥10 posities gedaald
@@ -1217,7 +1227,10 @@ def _detect_signalen():
                 "niveau": "negatief",
                 "tekst":  f"Pagina <strong>{pad}</strong> is {daling:.0f} posities gedaald: "
                           f"positie {oud['position']:.0f} → {pg['position']:.0f} "
-                          f"({pg['clicks']} clicks)"
+                          f"({pg['clicks']} clicks)",
+                "actie":  (f"Controleer in GSC Coverage of {pad} nog geïndexeerd is. "
+                           f"Voer daarna site:dakdekkersgids.nl{pad} uit in Google. "
+                           f"Controleer of de pagina recent gewijzigd is en herstel eventuele interne links die er naartoe wijzen."),
             })
 
     # Totale clicks (±20%)
@@ -1227,11 +1240,18 @@ def _detect_signalen():
         delta_pct = (nw_clicks - oud_clicks) / oud_clicks
         if abs(delta_pct) >= CLICKS_DREMPEL:
             richting = "gestegen" if delta_pct > 0 else "gedaald"
+            if delta_pct > 0:
+                actie = ("Bekijk welke pagina's de meeste extra clicks leveren in GSC en versterk die pagina's "
+                         "met interne links vanuit minder presterende pagina's.")
+            else:
+                actie = ("Open GSC → Coverage en filter op 'Excluded'. Controleer of belangrijke pagina's "
+                         "recent niet-geïndexeerd zijn geraakt. Controleer ook je robots.txt op recente wijzigingen.")
             signalen.append({
                 "type":   "clicks_totaal",
                 "niveau": "positief" if delta_pct > 0 else "negatief",
                 "tekst":  f"Totale clicks zijn {abs(delta_pct)*100:.0f}% {richting}: "
-                          f"{oud_clicks} → {nw_clicks}"
+                          f"{oud_clicks} → {nw_clicks}",
+                "actie":  actie,
             })
 
     # Leads daling (≥30%)
@@ -1245,7 +1265,10 @@ def _detect_signalen():
                 "type":   "leads_daling",
                 "niveau": "negatief",
                 "tekst":  f"Leads zijn {abs(delta_pct)*100:.0f}% gedaald: "
-                          f"{oud_leads} → {nw_leads} deze week"
+                          f"{oud_leads} → {nw_leads} deze week",
+                "actie":  ("Vul zelf het offerteformulier in op mobiel én desktop en controleer of de bevestigingsmail aankomt. "
+                           "Controleer daarna in GA4 of de 'offerte_aangevraagd'-conversie nog vuur geeft, "
+                           "of dat de daling door een meetprobleem komt."),
             })
 
     # Clarity UX-signalen (vaste drempelwaarden)
@@ -1257,40 +1280,54 @@ def _detect_signalen():
         qb   = m.get("quickback_pct", 0)
         err  = m.get("script_error_pct", 0)
         scroll = m.get("scroll_diepte", 100)
+        dead_pags = m.get("dead_click_paginas", 0)
+        qb_pags   = m.get("quickback_paginas", 0)
 
         if dead >= DEAD_CLICK_DREMPEL:
             signalen.append({
                 "type":   "dead_clicks",
                 "niveau": "negatief",
                 "tekst":  f"Hoge dead-click rate: <strong>{dead}%</strong> van de sessies klikt op elementen die niets doen "
-                          f"({m.get('dead_click_paginas', 0)} pagina's betrokken). Controleer CTA's en linkjes."
+                          f"({dead_pags} pagina's betrokken).",
+                "actie":  (f"Open Clarity → Heatmaps en filter op de {dead_pags} pagina's met dead clicks. "
+                           f"Zoek het element met de meeste dode klikken (vaak een niet-klikbare afbeelding of tekst) "
+                           f"en maak het klikbaar of verwijder de klikhint."),
             })
         if rage >= RAGE_CLICK_DREMPEL:
             signalen.append({
                 "type":   "rage_clicks",
                 "niveau": "negatief",
-                "tekst":  f"Hoge rage-click rate: <strong>{rage}%</strong> — gebruikers zijn gefrustreerd. "
-                          f"Waarschijnlijk een kapot element of trage laadtijd."
+                "tekst":  f"Hoge rage-click rate: <strong>{rage}%</strong> — gebruikers zijn gefrustreerd.",
+                "actie":  ("Open Clarity → Session recordings, filter op rage clicks en bekijk de eerste 3 sessies. "
+                           "Noteer op welk element het misgaat en herstel het (kapotte knop, trage laadtijd, "
+                           "of formulierfout)."),
             })
         if qb >= QUICKBACK_DREMPEL:
             signalen.append({
                 "type":   "quickback",
                 "niveau": "negatief",
                 "tekst":  f"Hoge quick-back rate: <strong>{qb}%</strong> van bezoekers keert direct terug naar Google "
-                          f"({m.get('quickback_paginas', 0)} pagina's). Content sluit mogelijk niet aan bij zoekintentie."
+                          f"({qb_pags} pagina's).",
+                "actie":  (f"Herschrijf de eerste 100 woorden van de {qb_pags} pagina's met hoge quick-back. "
+                           f"Zorg dat de zoekintentie ('ik zoek een dakdekker die dit nu kan oplossen') "
+                           f"direct beantwoord wordt — met een concreet aanbod en telefoonnummer boven de fold."),
             })
         if err >= SCRIPT_ERROR_DREMPEL:
             signalen.append({
                 "type":   "script_errors",
                 "niveau": "negatief",
-                "tekst":  f"Script errors op <strong>{err}%</strong> van de sessies — waarschijnlijk een JavaScript-fout die conversies blokkeert."
+                "tekst":  f"Script errors op <strong>{err}%</strong> van de sessies.",
+                "actie":  ("Open de site in Chrome, druk F12 → Console en noteer de exacte foutmelding. "
+                           "Stuur de fout door naar de developer. Controleer ook of het formulier nog werkt "
+                           "door het zelf in te vullen."),
             })
         if scroll < SCROLL_DIEPTE_MIN:
             signalen.append({
                 "type":   "lage_scroll",
                 "niveau": "negatief",
-                "tekst":  f"Lage gemiddelde scroll diepte: <strong>{scroll}%</strong>. "
-                          f"Bezoekers zien de CTA of het formulier mogelijk niet."
+                "tekst":  f"Lage gemiddelde scroll diepte: <strong>{scroll}%</strong>.",
+                "actie":  ("Verplaats het offerteformulier of de CTA-knop naar boven de fold op de belangrijkste landingspagina's. "
+                           "Test daarna in Clarity of de scroll diepte stijgt binnen 48 uur."),
             })
 
     return signalen
@@ -1338,16 +1375,27 @@ def _stuur_signalering_mail(signalen):
     }
 
     def rijen(items, kleur):
-        return "".join(
-            f'<div style="padding:10px 14px;border-left:3px solid {kleur};'
-            f'margin-bottom:8px;background:#1e1e1e;border-radius:0 8px 8px 0;'
-            f'font-size:13px;color:#c0c0c0;line-height:1.6">'
-            f'<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;'
-            f'color:{kleur};display:block;margin-bottom:4px">'
-            f'{type_label.get(s["type"], s["type"])}</span>'
-            f'{s["tekst"]}</div>'
-            for s in items
-        )
+        html_parts = []
+        for s in items:
+            actie_html = ""
+            if s.get("actie"):
+                actie_html = (
+                    f'<div style="margin-top:10px;padding:8px 12px;background:#252525;'
+                    f'border-radius:6px;font-size:12px;color:#e0e0e0;line-height:1.6">'
+                    f'<span style="color:#02CE80;font-weight:700;text-transform:uppercase;'
+                    f'font-size:10px;letter-spacing:0.5px;display:block;margin-bottom:4px">Doe nu</span>'
+                    f'{s["actie"]}</div>'
+                )
+            html_parts.append(
+                f'<div style="padding:12px 14px;border-left:3px solid {kleur};'
+                f'margin-bottom:10px;background:#1e1e1e;border-radius:0 8px 8px 0;'
+                f'font-size:13px;color:#c0c0c0;line-height:1.6">'
+                f'<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;'
+                f'color:{kleur};display:block;margin-bottom:4px">'
+                f'{type_label.get(s["type"], s["type"])}</span>'
+                f'{s["tekst"]}{actie_html}</div>'
+            )
+        return "".join(html_parts)
 
     secties = ""
     if negatief:
@@ -1427,30 +1475,43 @@ def _genereer_taken(gsc, ga4, leads_data):
         "REGELS:\n"
         '- Verboden woorden: "analyseer", "evalueer", "onderzoek", "optimaliseer", "bekijk", "controleer of"\n'
         "- Noem altijd een specifieke URL of keyword uit de data\n"
-        "- Beschrijf de exacte handeling, niet het probleem\n"
-        '- Geef antwoord als JSON-array: [{"voorstel": "titel (max 8 woorden)", "actie": "exacte handeling in 1-2 zinnen", "impact": "hoog|middel|laag", "tijd_minuten": 30}]'
+        "- Beschrijf de exacte handeling — niet het probleem, maar de uitvoering\n"
+        "- SLECHT voorbeeld: 'Optimaliseer de title tag van de dakdekker Amsterdam pagina'\n"
+        "- GOED voorbeeld: 'Verander de title tag van /dakdekkers-amsterdam van \"Dakdekkers Amsterdam\" naar "
+        "\"Dakdekkers Amsterdam nodig? Gratis offerte vandaag | Dakdekkersgids\" — dit adresseert de lage CTR (1.8%) "
+        "bij 412 impressies direct'\n"
+        '- Geef antwoord als JSON-array: [{"voorstel": "titel (max 8 woorden)", "actie": "exacte handeling in 1-2 zinnen met specifieke waarden uit de data", "impact": "hoog|middel|laag", "tijd_minuten": 15}]\n'
+        "- tijd_minuten: realistisch schatten (title tag wijzigen = 10 min, FAQ schrijven = 45 min, nieuwe pagina = 120 min)"
     )
 
     agenten = {
         "SEO-specialist": (
             "Je bent SEO-specialist voor dakdekkersgids.nl. Jouw focus: title tags, meta descriptions, interne links, posities, featured snippets, CTR.\n\n"
             f"DATA:\n{data_blok}\n\n{regels}\n\n"
-            "Stel je 2 beste SEO-actiepunten voor die deze week de meeste clicks of leads opleveren. Baseer je uitsluitend op de data."
+            "Stel je 2 beste SEO-actiepunten voor die deze week de meeste clicks of leads opleveren. "
+            "Noem de exacte tekst die je wijzigt (voor → na), de specifieke URL of keyword, en het verwachte effect in clicks of CTR. "
+            "Baseer je uitsluitend op de data."
         ),
         "CRO/leads-specialist": (
             "Je bent CRO-specialist (conversie-optimalisatie) voor dakdekkersgids.nl. Jouw focus: formulieren, dead clicks, quick back, bounce, mobiele UX, CTA-plaatsing.\n\n"
             f"DATA:\n{data_blok}\n\n{regels}\n\n"
-            "Stel je 2 beste CRO-actiepunten voor die deze week de meeste extra leads opleveren. Baseer je uitsluitend op de data."
+            "Stel je 2 beste CRO-actiepunten voor die deze week de meeste extra leads opleveren. "
+            "Beschrijf de exacte wijziging (welk element, welke pagina, wat er concreet verandert) en waarom dit direct leads oplevert. "
+            "Baseer je uitsluitend op de data."
         ),
         "Content-strateeg": (
             "Je bent content-strateeg voor dakdekkersgids.nl. Jouw focus: nieuwe pagina's, FAQ-secties, content-gaps, inhoudslengte, cannibalisatie oplossen.\n\n"
             f"DATA:\n{data_blok}\n\n{regels}\n\n"
-            "Stel je 2 beste content-actiepunten voor. Baseer je uitsluitend op de data."
+            "Stel je 2 beste content-actiepunten voor. "
+            "Noem de specifieke URL, welke sectie je toevoegt of aanpast, en de exacte inhoud op hoofdlijnen (bijv. 'voeg FAQ toe met vragen: X, Y, Z'). "
+            "Baseer je uitsluitend op de data."
         ),
         "Anomalie-detective": (
             "Je bent data-analist voor dakdekkersgids.nl. Jouw focus: onverwachte dalingen, CTR-anomalieen, bounce-pieken, verwaarloosde pagina's.\n\n"
             f"DATA:\n{data_blok}\n\n{regels}\n\n"
-            "Stel je 2 meest urgente actiepunten voor op basis van afwijkingen in de data."
+            "Stel je 2 meest urgente actiepunten voor op basis van afwijkingen in de data. "
+            "Benoem de exacte afwijking met de cijfers, de specifieke URL of keyword, en de concrete herstelstap. "
+            "Baseer je uitsluitend op de data."
         ),
     }
 
