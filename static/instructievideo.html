@@ -277,8 +277,8 @@ function VoiceToggle({ on, onToggle, hasTTS }) {
   if (!hasTTS) return null;
   return (
     <div onClick={onToggle} className="vbtn" style={{
-      position: 'absolute', top: 9, right: 14, zIndex: 60, cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: 8, padding: '7px 13px', borderRadius: 8,
+      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+      padding: '7px 13px', borderRadius: 8,
       fontSize: 12.5, fontWeight: 700, letterSpacing: '0.3px',
       color: on ? '#001b10' : '#cfcfcf',
       background: on ? '#02CE80' : 'rgba(255,255,255,0.06)',
@@ -287,6 +287,22 @@ function VoiceToggle({ on, onToggle, hasTTS }) {
     }}>
       <span style={{ fontSize: 14 }}>{on ? '🔊' : '🔇'}</span>
       {on ? 'Stem aan' : 'Stem uit'}
+    </div>
+  );
+}
+
+function VideoHeader({ voiceOn, onToggle, hasTTS }) {
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 60,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '10px 14px',
+      background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)',
+    }}>
+      <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)' }}>
+        Uitlegvideo
+      </div>
+      <VoiceToggle on={voiceOn} onToggle={onToggle} hasTTS={hasTTS} />
     </div>
   );
 }
@@ -345,7 +361,7 @@ function App() {
         <ChapterRail chapters={CHAPTERS} active={activeCh} />
         <ChapterTracker chapters={CHAPTERS} onChange={setActiveCh} />
         <CaptionTrack cues={CUES} />
-        <VoiceToggle on={voiceOn} onToggle={() => setVoiceOn(v => !v)} hasTTS={hasTTS} />
+        <VideoHeader voiceOn={voiceOn} onToggle={() => setVoiceOn(v => !v)} hasTTS={hasTTS} />
         <Narrator cues={CUES} voiceOn={voiceOn} />
         <LabelTicker />
         <SeekBridge />
