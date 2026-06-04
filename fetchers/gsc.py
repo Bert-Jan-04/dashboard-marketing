@@ -172,8 +172,8 @@ def main():
     month_start = week_end - timedelta(days=29)
     kw_month = parse_rows(query(service, month_start, week_end, ["query"]), ["query"])
 
-    # ── Positie-historiek: top 20 keywords, laatste 8 weken ───────────────────
-    top_kw_set = {kw["query"] for kw in content_keywords[:20]}
+    # ── Positie-historiek: alle content-keywords, laatste 8 weken ────────────
+    top_kw_set = {kw["query"] for kw in content_keywords}
     keyword_historiek = {q: [] for q in top_kw_set}
     for i in range(7, -1, -1):  # week 7 (oudst) → week 0 (huidig)
         if i == 0:
