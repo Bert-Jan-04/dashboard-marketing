@@ -1759,15 +1759,20 @@ async function toggleTaakStatus(id, gedaan) {
 
 async function triggerTakenmail() {
     const btn = event.target;
-    btn.textContent = 'Bezig...';
+    const lijst = document.getElementById('taken-lijst');
+    btn.textContent = 'AI-agents aan het werk...';
     btn.disabled = true;
+    lijst.innerHTML = '<p style="color:#828282;font-size:13px">Taken worden gegenereerd via AI — dit duurt ~15 seconden...</p>';
     try {
         const res = await fetch('/api/taken/genereer', { method: 'POST' });
         const data = await res.json();
-        if (!data.ok) throw new Error(data.error || 'Onbekende fout');
+        if (!data.ok) {
+            lijst.innerHTML = `<p style="color:#f87171;font-size:13px">Fout: ${data.error || 'Onbekende fout'}. Controleer of de data vers is (Vernieuwen) en de OpenAI-sleutel correct is.</p>`;
+            return;
+        }
         await laadTaken();
     } catch(e) {
-        alert('Fout bij genereren: ' + e.message);
+        lijst.innerHTML = `<p style="color:#f87171;font-size:13px">Verbindingsfout: ${e.message}</p>`;
     } finally {
         btn.textContent = 'Nieuwe taken genereren';
         btn.disabled = false;

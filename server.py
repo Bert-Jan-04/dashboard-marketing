@@ -1801,15 +1801,19 @@ def mail_rapport():
 @app.route("/api/taken/genereer", methods=["POST"])
 def genereer_taken():
     """Genereer en sla taken op zonder mail te sturen."""
+    import traceback
     try:
         gsc        = load_json("gsc_data.json")
         ga4        = load_json("ga4_data.json")
         leads_data = load_json("leads_week.json")
+        print(f"[taken] Data geladen: gsc={bool(gsc)}, ga4={bool(ga4)}, leads={bool(leads_data)}")
         taken = _genereer_taken(gsc, ga4, leads_data)
+        print(f"[taken] Gegenereerd: {len(taken)} taken")
         datum_iso = date.today().isoformat()
         _sla_taken_op(taken, datum_iso)
-        return jsonify({"ok": True, "taken": taken})
+        return jsonify({"ok": True, "taken": taken, "aantal": len(taken)})
     except Exception as e:
+        print(f"[taken] FOUT: {e}\n{traceback.format_exc()}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
