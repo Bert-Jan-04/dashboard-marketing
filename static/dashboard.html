@@ -323,7 +323,7 @@
 
             <!-- UITLEGVIDEO -->
             <div style="margin-bottom:48px;padding-bottom:40px;border-bottom:1px solid #1a1a1a">
-                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">: zet de stem rechtsboven aan.</div>
+                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">Uitlegvideo: zet de stem rechtsboven aan.</div>
                 <div style="position:relative;width:100%;padding-top:56.25%;background:#111;border:1px solid #1a1a1a;border-radius:14px;overflow:hidden">
                     <iframe
                         src="/static/instructievideo.html"
@@ -2750,6 +2750,8 @@ async function stuurKantoorBericht(key) {
         const antwoord = (data.antwoord || '').replace(/\[VRAGEN\][\s\S]*?\[\/VRAGEN\]/g, '').trim();
         kantoorChats[key].push({ role: 'assistant', content: antwoord });
         renderKantoorChat(key);
+        const aiMsgs = chatEl.querySelectorAll('.kantoor-msg-ai');
+        if (aiMsgs.length) chatEl.scrollTop = aiMsgs[aiMsgs.length - 1].offsetTop - chatEl.offsetTop;
     } catch (e) {
         typingEl.remove();
         const err = document.createElement('div');
