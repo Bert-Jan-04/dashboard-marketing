@@ -53,6 +53,19 @@ const CHAPTERS = [
   { t: T.check,  label: 'Checklist' },
 ];
 
+// ── Scene boundaries (every point where a slide swaps) ───────────────────────
+// The narrator must never let the playhead drift across one of these while a
+// sentence is still being spoken — otherwise the slide changes mid-sentence and
+// the speaker gets cut off. The scene only swaps when the NEXT sentence starts.
+const SCENE_BOUNDS = Object.values(T).sort((a, b) => a - b);
+// Smallest boundary strictly greater than `t` (i.e. the end of t's scene).
+function sceneEndAfter(t) {
+  for (let i = 0; i < SCENE_BOUNDS.length; i++) {
+    if (SCENE_BOUNDS[i] > t + 1e-6) return SCENE_BOUNDS[i];
+  }
+  return T.end;
+}
+
 // ── Captions / narration cues ───────────────────────────────────────────────
 const CUES = [
   { t: 0.4,  text: 'Welkom bij de overdracht van het Marketing Intelligence-dashboard van dakdekkersgids.nl.' },
@@ -198,8 +211,9 @@ function Narrator({ cues, voiceOn }) {
     };
     u.onend = next; u.onerror = next;
     window.speechSynthesis.speak(u);
-    // Watchdog in case onend never fires.
-    setTimeout(next, Math.min(22000, text.length * 95 + 3000));
+    // Watchdog in case onend never fires. Kept generous so it never fires
+    // BEFORE a long sentence finishes (that would itself cut the speaker off).
+    setTimeout(next, Math.min(32000, text.length * 125 + 4500));
   }, [cues, setPlaying]);
 
   // Start / stop narration mode
@@ -229,7 +243,12 @@ function Narrator({ cues, voiceOn }) {
             const e = Easing.easeInOutCubic(el / inDur);
             pos = fromRef.current + (anchor - fromRef.current) * e;
           } else {
-            pos = Math.min(anchor + Math.min(DRIFT_MAX, (el - inDur) * DRIFT_RATE), nextAnchor - 0.15);
+            // Drift gently forward DURING the sentence, but never across this
+            // sentence's own scene boundary — the slide must hold until the
+            // next sentence actually starts, so the speaker is never cut off.
+            const sceneEnd = sceneEndAfter(anchor);
+            const drift = anchor + Math.min(DRIFT_MAX, (el - inDur) * DRIFT_RATE);
+            pos = Math.max(anchor, Math.min(drift, nextAnchor - 0.15, sceneEnd - 0.25));
           }
           posRef.current = pos;
           setTime(pos);
