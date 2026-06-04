@@ -1382,7 +1382,7 @@ function navigeer(pagina) {
 
     if (pagina === 'home') renderHomepage();
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
-    if (pagina === 'analytics' && ga4Data) vulAnalyticsPagina();
+    if (pagina === 'analytics' && ga4Data) { ga4PaginasLimit = 10; vulAnalyticsPagina(); }
     if (pagina === 'trends' && trendsData) vulTrendsPagina();
     if (pagina === 'clusters' && leadsData) { vulClustersPagina(); vulContentPagesStatus(); }
     if (pagina === 'dashboard' && gscData) vulKansen();
@@ -1726,17 +1726,29 @@ function renderGA4Aanvragen() {
 }
 function sortGA4Aanvragen(key) { _updateSort('ga4-aanvragen-tabel', key); renderGA4Aanvragen(); }
 
+let ga4PaginasLimit = 10;
+
 function renderGA4Paginas() {
     const data = _applySort(ga4Data.top_pages || [], 'ga4-paginas-tabel', 'sessions');
-    document.getElementById('ga4-paginas-tabel').innerHTML = data.map(p => `
+    const zichtbaar = data.slice(0, ga4PaginasLimit);
+    const rijen = zichtbaar.map(p => `
         <tr>
             <td>${paginaLink(p.pagePath)}</td>
             <td>${p.sessions.toLocaleString('nl')}</td>
             <td>${p.activeUsers.toLocaleString('nl')}</td>
             <td>${(p.bounceRate * 100).toFixed(1)}%</td>
         </tr>`).join('') || '<tr><td colspan="4" class="loading">Geen data</td></tr>';
+    const meer = data.length > ga4PaginasLimit
+        ? `<tr><td colspan="4" style="text-align:center;padding:10px 0">
+               <button onclick="ga4PaginasMeer()" style="background:none;border:1px solid var(--border-mid);border-radius:6px;padding:5px 14px;font-size:12px;color:var(--text-muted);cursor:pointer">
+                   Bekijk meer (${data.length - ga4PaginasLimit} meer)
+               </button>
+           </td></tr>`
+        : '';
+    document.getElementById('ga4-paginas-tabel').innerHTML = rijen + meer;
 }
-function sortGA4Paginas(key) { _updateSort('ga4-paginas-tabel', key); renderGA4Paginas(); }
+function ga4PaginasMeer() { ga4PaginasLimit += 10; renderGA4Paginas(); }
+function sortGA4Paginas(key) { ga4PaginasLimit = 10; _updateSort('ga4-paginas-tabel', key); renderGA4Paginas(); }
 
 // ── VERNIEUWEN ───────────────────────────────────────────────
 async function refreshData() {
