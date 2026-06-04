@@ -323,7 +323,7 @@
 
             <!-- UITLEGVIDEO -->
             <div style="margin-bottom:48px;padding-bottom:40px;border-bottom:1px solid #1a1a1a">
-                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">Uitlegvideo</div>
+                <div style="font-size:10.5px;font-weight:700;color:#444;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:20px">: zet de stem rechtsboven aan.</div>
                 <div style="position:relative;width:100%;padding-top:56.25%;background:#111;border:1px solid #1a1a1a;border-radius:14px;overflow:hidden">
                     <iframe
                         src="/static/instructievideo.html"
@@ -2952,12 +2952,17 @@ async function verstuurChat() {
         geschiedenis.push({ role: 'assistant', content: antwoord });
         chatSuggesties[actieveTab] = data.suggesties || [];
         renderChatGeschiedenis();
+        const aiMsgs = container.querySelectorAll('.chat-msg-wrap.ai');
+        if (aiMsgs.length) {
+            const el = aiMsgs[aiMsgs.length - 1];
+            container.scrollTop = el.offsetTop - container.offsetTop;
+        }
     } catch (e) {
         document.getElementById(typingId)?.closest('.chat-msg-wrap').remove();
         container.innerHTML += `<div class="chat-msg-wrap ai"><div class="chat-msg" style="color:#f87171">Fout: server niet bereikbaar</div></div>`;
+        container.scrollTop = container.scrollHeight;
     } finally {
         sendBtn.disabled = false;
-        container.scrollTop = container.scrollHeight;
     }
 }
 
