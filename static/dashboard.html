@@ -1239,6 +1239,13 @@
             </div>
         </div>
         <div class="kantoor-grid" id="kantoor-grid"></div>
+
+        <div class="card" style="margin-top:32px">
+            <div class="card-title">AI-model</div>
+            <div class="card-sub">Geldt voor alle agenten. Wijziging gaat direct in.</div>
+            <div id="model-kaarten" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px"></div>
+            <div id="model-opgeslagen" style="display:none;margin-top:12px;font-size:12px;color:#02CE80">✓ Opgeslagen</div>
+        </div>
     </div>
 
 </div>
@@ -1246,12 +1253,7 @@
 <!-- CHAT SIDEBAR -->
 <div class="chat-sidebar">
     <div class="chat-sidebar-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div class="chat-sidebar-title" style="margin-bottom:0">AI Agenten</div>
-            <select id="model-select" onchange="slaModelOp(this.value)" title="OpenAI model" style="background:var(--bg-mid);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:10.5px;padding:3px 6px;cursor:pointer;outline:none">
-                <option value="">Model laden...</option>
-            </select>
-        </div>
+        <div class="chat-sidebar-title">AI Agenten</div>
     </div>
     <div class="agent-grid" id="agent-grid"></div>
     <div class="chat-active-bar">
@@ -2275,24 +2277,60 @@ function sortVerwaarloosde(key) { _updateSort('verwaarloosde-tabel', key); rende
 laadData();
 laadModelInstellingen();
 
+const MODEL_INFO = {
+    'gpt-4o-mini':  { badge: 'Snel & goedkoop', omschrijving: 'Ideaal voor dagelijks gebruik. Razendsnel en zuinig, maar minder sterk bij complexe redenering.' },
+    'gpt-4o':       { badge: 'Slim & veelzijdig', omschrijving: 'Slimmer en genuanceerder dan mini. Betere analyses bij ingewikkelde vragen. Trager en duurder.' },
+    'gpt-4.1':      { badge: 'Nieuwste · Aanbevolen', omschrijving: 'Sterk in lange contexten en instructieopvolging. Goede balans tussen kwaliteit en kosten.' },
+    'gpt-4.1-mini': { badge: 'Snel · Nieuw', omschrijving: 'Snelle variant van gpt-4.1. Iets minder sterk dan de volledige versie, maar aanzienlijk goedkoper.' },
+    'o3-mini':      { badge: 'Redenering', omschrijving: 'Gespecialiseerd in stapsgewijze redenering en strategie. Trager, maar het beste bij complexe analysesvragen.' },
+};
+
+let huidigModel = 'gpt-4o-mini';
+
 async function laadModelInstellingen() {
     try {
         const res = await fetch('/api/instellingen', { cache: 'no-store' });
         const data = await res.json();
-        const sel = document.getElementById('model-select');
-        sel.innerHTML = data.beschikbare_modellen.map(m =>
-            `<option value="${m}" ${m === data.openai_model ? 'selected' : ''}>${m}</option>`
-        ).join('');
+        huidigModel = data.openai_model;
+        renderModelKaarten(data.beschikbare_modellen, huidigModel);
     } catch (e) {}
 }
 
+function renderModelKaarten(modellen, actief) {
+    const container = document.getElementById('model-kaarten');
+    if (!container) return;
+    container.innerHTML = modellen.map(m => {
+        const info = MODEL_INFO[m] || { badge: '', omschrijving: '' };
+        const isActief = m === actief;
+        return `<div onclick="slaModelOp('${m}')" style="
+            border:2px solid ${isActief ? '#02CE80' : 'var(--border)'};
+            border-radius:12px;padding:14px 16px;cursor:pointer;
+            background:${isActief ? 'rgba(2,206,128,.07)' : 'var(--bg-elevated)'};
+            transition:border-color .15s,background .15s" id="model-kaart-${m}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span style="font-size:12.5px;font-weight:700;color:${isActief ? '#02CE80' : 'var(--text)'}">${m}</span>
+                ${isActief ? '<span style="font-size:10px;color:#02CE80">✓ Actief</span>' : ''}
+            </div>
+            <div style="font-size:10.5px;font-weight:700;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${info.badge}</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${info.omschrijving}</div>
+        </div>`;
+    }).join('');
+}
+
 async function slaModelOp(model) {
+    if (model === huidigModel) return;
     try {
         await fetch('/api/instellingen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ openai_model: model }),
         });
+        huidigModel = model;
+        const res = await fetch('/api/instellingen', { cache: 'no-store' });
+        const data = await res.json();
+        renderModelKaarten(data.beschikbare_modellen, huidigModel);
+        const bevestiging = document.getElementById('model-opgeslagen');
+        if (bevestiging) { bevestiging.style.display = 'block'; setTimeout(() => bevestiging.style.display = 'none', 2000); }
     } catch (e) {}
 }
 
