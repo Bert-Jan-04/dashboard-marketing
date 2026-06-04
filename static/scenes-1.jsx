@@ -84,7 +84,7 @@ function ScenePipeline() {
         </Reveal>
       ))}
 
-      <Reveal at={3.2} dur={0.6} y={14} style={{ position: 'absolute', bottom: 62, left: 0, right: 0, textAlign: 'center' }}>
+      <Reveal at={3.2} dur={0.6} y={14} style={{ position: 'absolute', bottom: 150, left: 0, right: 0, textAlign: 'center' }}>
         <div style={{ fontSize: 22, color: C.dim }}>
           Eén doel: <span style={{ color: C.green, fontWeight: 700 }}>meer leads</span> voor de dakdekkers.
         </div>

@@ -494,40 +494,50 @@ function Stage({
 
 function PlaybackBar({ time, duration, playing, onPlayPause, onReset, onSeek, onHover }) {
   const trackRef = React.useRef(null);
-  const draggingRef = React.useRef(false);
+  const [dragging, setDragging] = React.useState(false);
 
   const timeFromEvent = React.useCallback((e) => {
     const rect = trackRef.current.getBoundingClientRect();
-    const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
-    const x = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const x = clamp((e.clientX - rect.left) / rect.width, 0, 1);
     return x * duration;
   }, [duration]);
 
-  const onPointerDown = (e) => {
+  const onTrackMove = (e) => {
     if (!trackRef.current) return;
-    e.preventDefault();
-    trackRef.current.setPointerCapture(e.pointerId);
-    draggingRef.current = true;
-    onSeek(timeFromEvent(e));
-    onHover(null);
-  };
-
-  const onPointerMove = (e) => {
-    if (!trackRef.current) return;
-    if (draggingRef.current) {
-      onSeek(timeFromEvent(e));
+    const t = timeFromEvent(e);
+    if (dragging) {
+      onSeek(t);
     } else {
-      onHover(timeFromEvent(e));
+      onHover(t);
     }
   };
 
-  const onPointerUp = (e) => {
-    draggingRef.current = false;
+  const onTrackLeave = () => {
+    if (!dragging) onHover(null);
   };
 
-  const onPointerLeave = (e) => {
-    if (!draggingRef.current) onHover(null);
+  const onTrackDown = (e) => {
+    setDragging(true);
+    const t = timeFromEvent(e);
+    onSeek(t);
+    onHover(null);
   };
+
+  React.useEffect(() => {
+    if (!dragging) return;
+    const onUp = () => setDragging(false);
+    const onMove = (e) => {
+      if (!trackRef.current) return;
+      const t = timeFromEvent(e);
+      onSeek(t);
+    };
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mousemove', onMove);
+    return () => {
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('mousemove', onMove);
+    };
+  }, [dragging, timeFromEvent, onSeek]);
 
   const pct = duration > 0 ? (time / duration) * 100 : 0;
   const fmt = (t) => {
@@ -588,17 +598,15 @@ function PlaybackBar({ time, duration, playing, onPlayPause, onReset, onSeek, on
       {/* Scrub track */}
       <div
         ref={trackRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerLeave}
+        onMouseMove={onTrackMove}
+        onMouseLeave={onTrackLeave}
+        onMouseDown={onTrackDown}
         style={{
           flex: 1,
-          height: 36,
+          height: 22,
           position: 'relative',
           cursor: 'pointer',
           display: 'flex', alignItems: 'center',
-          touchAction: 'none',
         }}
       >
         <div style={{
