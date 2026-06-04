@@ -2746,6 +2746,7 @@ async function stuurKantoorBericht(key) {
         });
         const data = await res.json();
         typingEl.remove();
+        if (res.status === 401) { window.location.href = '/login'; return; }
         const antwoord = (data.antwoord || '').replace(/\[VRAGEN\][\s\S]*?\[\/VRAGEN\]/g, '').trim();
         kantoorChats[key].push({ role: 'assistant', content: antwoord });
         renderKantoorChat(key);
@@ -2948,6 +2949,7 @@ async function verstuurChat() {
         }
         const data = await res.json();
         document.getElementById(typingId)?.closest('.chat-msg-wrap').remove();
+        if (res.status === 401) { window.location.href = '/login'; return; }
         const antwoord = data.antwoord || data.error || 'Onbekende fout';
         geschiedenis.push({ role: 'assistant', content: antwoord });
         chatSuggesties[actieveTab] = data.suggesties || [];
