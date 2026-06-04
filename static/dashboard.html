@@ -2626,9 +2626,7 @@ function renderHomepage() {
     const mg = document.getElementById('home-modules-grid');
     if (mg) {
         mg.innerHTML = HOME_MODULES.map(m => `
-            <div onclick="navigeer('${m.key}')" style="background:#111;border:1px solid #1a1a1a;border-top:2px solid ${m.kleur}40;border-radius:12px;padding:18px 16px;cursor:pointer;transition:all 0.2s"
-                onmouseover="this.style.background='#161616';this.style.borderTopColor='${m.kleur}'"
-                onmouseout="this.style.background='#111';this.style.borderTopColor='${m.kleur}40'">
+            <div onclick="navigeer('${m.key}')" style="background:#111;border:1px solid #1a1a1a;border-top:2px solid ${m.kleur}40;border-radius:12px;padding:18px 16px;cursor:pointer">
                 <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">${m.naam}</div>
                 <div style="font-size:11px;color:#444;line-height:1.6;margin-bottom:10px">${m.omschrijving}</div>
                 <div style="font-size:10.5px;color:${m.kleur};opacity:0.7">Ga naar →</div>
@@ -2639,9 +2637,7 @@ function renderHomepage() {
     if (ag) {
         ag.innerHTML = AGENT_KEYS.map(key => {
             const a = AGENTS[key];
-            return `<div onclick="navigeer('kantoor')" style="background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px"
-                onmouseover="this.style.background='#161616';this.style.borderColor='#02CE8030'"
-                onmouseout="this.style.background='#111';this.style.borderColor='#1a1a1a'">
+            return `<div onclick="navigeer('kantoor')" style="background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:12px">
                 <div style="width:36px;height:36px;flex-shrink:0;border-radius:50%;overflow:hidden">${a.avatar}</div>
                 <div style="min-width:0">
                     <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">${a.naam}</div>
