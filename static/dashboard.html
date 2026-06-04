@@ -1762,8 +1762,12 @@ async function triggerTakenmail() {
     btn.textContent = 'Bezig...';
     btn.disabled = true;
     try {
-        await fetch('/api/mail-taken', { method: 'POST' });
+        const res = await fetch('/api/taken/genereer', { method: 'POST' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Onbekende fout');
         await laadTaken();
+    } catch(e) {
+        alert('Fout bij genereren: ' + e.message);
     } finally {
         btn.textContent = 'Nieuwe taken genereren';
         btn.disabled = false;

@@ -1798,6 +1798,21 @@ def mail_rapport():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/taken/genereer", methods=["POST"])
+def genereer_taken():
+    """Genereer en sla taken op zonder mail te sturen."""
+    try:
+        gsc        = load_json("gsc_data.json")
+        ga4        = load_json("ga4_data.json")
+        leads_data = load_json("leads_week.json")
+        taken = _genereer_taken(gsc, ga4, leads_data)
+        datum_iso = date.today().isoformat()
+        _sla_taken_op(taken, datum_iso)
+        return jsonify({"ok": True, "taken": taken})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # Takenmail handmatig triggeren (voor testen)
 @app.route("/api/mail-taken", methods=["POST"])
 def mail_taken():
