@@ -258,7 +258,6 @@
     <div class="nav-section">Overzicht</div>
     <div class="nav-item" onclick="navigeer('home')">◼ Home</div>
     <div class="nav-item active" onclick="navigeer('dashboard')">◼ Dashboard</div>
-    <div class="nav-item" onclick="navigeer('taken')">◼ Taken <span id="nav-taken-badge" style="display:none;background:#f87171;color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px;vertical-align:middle"></span></div>
     <div class="nav-item" onclick="navigeer('kantoor')">◼ Kantoor</div>
     <div class="nav-section">Data bronnen</div>
     <div class="nav-item" onclick="navigeer('searchconsole')">◼ Search Console</div>
@@ -553,18 +552,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <!-- ======================== PAGINA: TAKEN ======================== -->
-    <div class="page" id="page-taken">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-            <div>
-                <h2 style="margin:0;font-size:18px;font-weight:700">Taakopvolging</h2>
-                <p style="margin:4px 0 0;font-size:13px;color:#828282">AI-gegenereerde taken van de afgelopen 14 dagen — vink af zodra je iets hebt gedaan.</p>
-            </div>
-            <button onclick="triggerTakenmail()" style="background:#02CE8022;border:1px solid #02CE8055;color:#02CE80;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px">Nieuwe taken genereren</button>
-        </div>
-        <div id="taken-lijst"><span style="color:#828282;font-size:13px">Laden...</span></div>
     </div>
 
     <!-- ======================== PAGINA: SEARCH CONSOLE ======================== -->
@@ -1370,15 +1357,14 @@ function navigeer(pagina) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
 
-    const titels = { dashboard: 'Marketing Intelligence', taken: 'Taakopvolging', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusterprestaties', analyse: 'Analyse', clarity: 'Microsoft Clarity', concurrenten: 'Concurrentenanalyse' };
+    const titels = { dashboard: 'Marketing Intelligence', searchconsole: 'Search Console', analytics: 'Analytics', trends: 'Trends', keywords: 'Keyword Onderzoek', clusters: 'Clusterprestaties', analyse: 'Analyse', clarity: 'Microsoft Clarity', concurrenten: 'Concurrentenanalyse' };
     document.getElementById('page-titel').textContent = titels[pagina] || pagina;
 
     const navItems = document.querySelectorAll('.nav-item');
-    const index = { home: 0, dashboard: 1, taken: 2, kantoor: 3, searchconsole: 4, analytics: 5, trends: 6, keywords: 7, clusters: 8, analyse: 9, clarity: 10, concurrenten: 11 };
+    const index = { home: 0, dashboard: 1, kantoor: 2, searchconsole: 3, analytics: 4, trends: 5, keywords: 6, clusters: 7, analyse: 8, clarity: 9, concurrenten: 10 };
     if (index[pagina] !== undefined) navItems[index[pagina]].classList.add('active');
 
     if (pagina === 'home') renderHomepage();
-    if (pagina === 'taken') laadTaken();
     if (pagina === 'searchconsole' && gscData) vulGSCPagina();
     if (pagina === 'analytics' && ga4Data) vulAnalyticsPagina();
     if (pagina === 'trends' && trendsData) vulTrendsPagina();
@@ -1436,14 +1422,6 @@ async function laadData() {
 
     vulContentPagesStatus();
     if (huidigePagina === 'clarity') vulClarityPagina();
-
-    // Badge bijwerken zonder de taken-pagina te renderen
-    try {
-        const takenRes = await fetch('/api/taken', nc);
-        const takenLog = await takenRes.json();
-        updateTakenBadge(takenLog);
-        if (huidigePagina === 'taken') renderTaken(takenLog);
-    } catch(e) {}
 
     try {
         const ccRes = await fetch('/api/competitor-data', { cache: 'no-store' });
@@ -1683,100 +1661,6 @@ function positieBadge(pos) {
     if (pos <= 3) return `<span class="badge-green">#${pos}</span>`;
     if (pos <= 10) return `<span class="badge-yellow">#${pos}</span>`;
     return `<span class="badge-red">#${pos}</span>`;
-}
-
-// ── TAKEN PAGINA ─────────────────────────────────────────────
-async function laadTaken() {
-    document.getElementById('taken-lijst').innerHTML = '<span style="color:#828282;font-size:13px">Laden...</span>';
-    try {
-        const res = await fetch('/api/taken');
-        const log = await res.json();
-        renderTaken(log);
-        updateTakenBadge(log);
-    } catch(e) {
-        document.getElementById('taken-lijst').innerHTML = '<p style="color:#f87171;font-size:13px">Kon taken niet laden.</p>';
-    }
-}
-
-function renderTaken(log) {
-    if (!log.length) {
-        document.getElementById('taken-lijst').innerHTML = '<p style="color:#828282;font-size:13px">Geen taken gevonden. Genereer eerst taken via de takenmail of de knop hierboven.</p>';
-        return;
-    }
-    const prio_kleur = { hoog: '#f87171', middel: '#fbbf24', laag: '#02CE80' };
-    const dag_nl = ['zo','ma','di','wo','do','vr','za'];
-    const mnd_nl = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-    document.getElementById('taken-lijst').innerHTML = log.map(dag => {
-        const d = new Date(dag.datum);
-        const label = `${dag_nl[d.getDay()]} ${d.getDate()} ${mnd_nl[d.getMonth()]}`;
-        const open = dag.taken.filter(t => t.status !== 'gedaan').length;
-        const taken_html = dag.taken.map(t => {
-            const prio = (t.prioriteit || 'middel').toLowerCase();
-            const kleur = prio_kleur[prio] || '#fbbf24';
-            const gedaan = t.status === 'gedaan';
-            return `<div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid #252525;opacity:${gedaan ? '0.45' : '1'}">
-                <div style="flex-shrink:0;padding-top:2px">
-                    <input type="checkbox" ${gedaan ? 'checked' : ''}
-                        onchange="toggleTaakStatus('${t.id}', this.checked)"
-                        style="width:17px;height:17px;accent-color:#02CE80;cursor:pointer">
-                </div>
-                <div style="flex:1;min-width:0">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-                        <span style="font-size:14px;font-weight:700;color:#fff;${gedaan ? 'text-decoration:line-through;color:#555' : ''}">${t.taak || ''}</span>
-                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${kleur}22;color:${kleur};border:1px solid ${kleur}44;text-transform:uppercase;letter-spacing:0.4px">${prio}</span>
-                    </div>
-                    <p style="margin:0 0 6px;font-size:13px;color:#a0a0a0;line-height:1.6">${t.toelichting || ''}</p>
-                    <span style="font-size:12px;color:#02CE80">● ${t.medewerker || '—'}</span>
-                </div>
-            </div>`;
-        }).join('');
-        return `<div class="card" style="margin-bottom:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-                <div class="card-title" style="margin:0">${label}</div>
-                <span style="font-size:11px;color:${open > 0 ? '#fbbf24' : '#02CE80'}">${open > 0 ? open + ' open' : '✓ alles gedaan'}</span>
-            </div>
-            ${taken_html}
-        </div>`;
-    }).join('');
-}
-
-function updateTakenBadge(log) {
-    const badge = document.getElementById('nav-taken-badge');
-    if (!badge) return;
-    const open = log.flatMap(d => d.taken).filter(t => t.status !== 'gedaan').length;
-    if (open > 0) { badge.textContent = open; badge.style.display = 'inline'; }
-    else badge.style.display = 'none';
-}
-
-async function toggleTaakStatus(id, gedaan) {
-    await fetch('/api/taken/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: gedaan ? 'gedaan' : 'open' })
-    });
-    laadTaken();
-}
-
-async function triggerTakenmail() {
-    const btn = event.target;
-    const lijst = document.getElementById('taken-lijst');
-    btn.textContent = 'AI-agents aan het werk...';
-    btn.disabled = true;
-    lijst.innerHTML = '<p style="color:#828282;font-size:13px">Taken worden gegenereerd via AI — dit duurt ~15 seconden...</p>';
-    try {
-        const res = await fetch('/api/taken/genereer', { method: 'POST' });
-        const data = await res.json();
-        if (!data.ok) {
-            lijst.innerHTML = `<p style="color:#f87171;font-size:13px">Fout: ${data.error || 'Onbekende fout'}. Controleer of de data vers is (Vernieuwen) en de OpenAI-sleutel correct is.</p>`;
-            return;
-        }
-        await laadTaken();
-    } catch(e) {
-        lijst.innerHTML = `<p style="color:#f87171;font-size:13px">Verbindingsfout: ${e.message}</p>`;
-    } finally {
-        btn.textContent = 'Nieuwe taken genereren';
-        btn.disabled = false;
-    }
 }
 
 // ── ANALYTICS PAGINA ─────────────────────────────────────────
