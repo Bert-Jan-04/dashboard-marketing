@@ -1754,7 +1754,7 @@ def _startup_fetch():
 
 # Start scheduler en eenmalige startup-fetch
 if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    threading.Thread(target=_dagelijkse_mail_loop, daemon=True).start()
+    # threading.Thread(target=_dagelijkse_mail_loop, daemon=True).start()
     threading.Thread(target=_startup_fetch, daemon=True).start()
 
 
